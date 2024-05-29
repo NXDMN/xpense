@@ -9,15 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
-import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
 import com.nxdmn.xpense.data.dataSources.room.ExpenseRoomDataSource
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
-import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
-import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
+import com.nxdmn.xpense.navigation.XpenseNavHost
 import com.nxdmn.xpense.ui.theme.XpenseTheme
 
 class MainActivity : ComponentActivity() {
