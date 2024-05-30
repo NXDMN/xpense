@@ -1,6 +1,7 @@
 package com.nxdmn.xpense.screens.expenseList
 
 import android.app.Activity
+import android.graphics.drawable.Icon
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,7 +47,6 @@ fun ExpenseListScreen(
     expenseListViewModel: ExpenseListViewModel = viewModel(),
     onNavigateToDetail: (Long?) -> Unit = {},
 ){
-
     val expenseListUiState by expenseListViewModel.uiState.collectAsState()
 
     Scaffold(
@@ -58,42 +59,7 @@ fun ExpenseListScreen(
                 title = {
                     Text("Expenses")
                 },
-                actions = {
-
-                    IconButton(onClick = {
-                        onNavigateToDetail(null)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                modifier = Modifier.padding(end = 20.dp, bottom = 20.dp),
-                shape = CircleShape,
-                onClick = {
-                    onNavigateToDetail(null)
-                }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    text = "Bottom app bar",
-                )
-            }
         },
     ) { innerPadding ->
         LazyColumn(

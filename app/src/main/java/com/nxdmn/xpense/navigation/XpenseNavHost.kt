@@ -1,20 +1,30 @@
 package com.nxdmn.xpense.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
 import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
 import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
+import com.nxdmn.xpense.screens.setting.SettingScreen
+import com.nxdmn.xpense.screens.setting.SettingViewModel
 
 @Composable
-fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRepository) {
-    NavHost(navController = navController, startDestination = ExpenseList.route) {
+fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRepository, modifier: Modifier) {
+
+    val currentBackStack by navController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStack?.destination
+    val currentScreen = bottomNavigationScreens.find { it.route == currentDestination?.route } ?: ExpenseList
+
+    NavHost(navController = navController, startDestination = ExpenseList.route, modifier = modifier) {
         expenseListScreen(
             expenseRepository,
             onNavigateToExpenseDetail = { expenseId ->
@@ -25,6 +35,7 @@ fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRe
             expenseRepository,
             onNavigateToExpenseList = { navController.navigateToExpenseList() }
         )
+        settingScreen()
     }
 }
 
@@ -42,8 +53,11 @@ fun NavHostController.navigateSingleTopTo(route: String) =
 fun NavHostController.navigateToExpenseList() =
     this.navigateSingleTopTo(ExpenseList.route)
 
-fun NavHostController.navigateToExpenseDetail(expenseId: Long?) =
+fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
     this.navigateSingleTopTo("${ExpenseDetail.route}?expenseId=$expenseId")
+
+fun NavHostController.navigateToSetting() =
+    this.navigateSingleTopTo(Setting.route)
 
 fun NavGraphBuilder.expenseListScreen(
     expenseRepository: ExpenseRepository,
@@ -70,5 +84,11 @@ fun NavGraphBuilder.expenseDetailScreen(
             ExpenseDetailViewModel(expenseRepository, expenseId?.toLong()),
             onNavigateToExpenseList
         )
+    }
+}
+
+fun NavGraphBuilder.settingScreen(){
+    composable(route = Setting.route) {
+        SettingScreen(SettingViewModel())
     }
 }
