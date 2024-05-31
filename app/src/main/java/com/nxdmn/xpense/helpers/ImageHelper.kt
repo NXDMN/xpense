@@ -4,10 +4,8 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
-import androidx.activity.ComponentActivity
 import java.io.IOException
 
 
