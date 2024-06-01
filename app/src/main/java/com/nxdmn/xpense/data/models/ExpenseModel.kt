@@ -14,6 +14,7 @@ data class ExpenseModel(var id: Long = 0,
                         var amount: Int = 0,
                         @Serializable(with = LocalDateSerializer::class)
                         var date: LocalDate = LocalDate.now(),
+                        var category: String = "",
                         var remarks: String = "",
                         var image: String = "") : Parcelable
 
@@ -22,6 +23,7 @@ data class ExpenseModel(var id: Long = 0,
 data class ExpenseEntity(@PrimaryKey(autoGenerate = true) var id: Long = 0,
                          var amount: Int = 0,
                          var date: LocalDate = LocalDate.now(),
+                         var category: String = "",
                          var remarks: String = "",
                          var image: String = "")
 
@@ -30,6 +32,7 @@ fun ExpenseModel.asEntity() = ExpenseEntity(
     id = id,
     amount = amount,
     date = date,
+    category = category,
     remarks = remarks,
     image = image,
 )
@@ -38,6 +41,7 @@ fun ExpenseEntity.asModel() = ExpenseModel(
     id = id,
     amount = amount,
     date = date,
+    category = category,
     remarks = remarks,
     image = image,
 )
