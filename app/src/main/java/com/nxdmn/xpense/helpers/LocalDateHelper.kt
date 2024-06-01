@@ -12,14 +12,12 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = LocalDate::class)
 class LocalDateSerializer : KSerializer<LocalDate>{
-    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-
     override fun serialize(encoder: Encoder, value: LocalDate) {
-        encoder.encodeString(value.format(formatter))
+        encoder.encodeString(value.toString())
     }
 
     override fun deserialize(decoder: Decoder): LocalDate {
-        return LocalDate.parse(decoder.decodeString(), formatter)
+        return LocalDate.parse(decoder.decodeString())
     }
 }
 
