@@ -63,7 +63,7 @@ private fun XpenseApp(context: Context) {
                     },
                     floatingActionButton = {
                         FloatingActionButton(
-                            containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.inversePrimary,
                             onClick = {
                                 navController.navigateToExpenseDetail()
