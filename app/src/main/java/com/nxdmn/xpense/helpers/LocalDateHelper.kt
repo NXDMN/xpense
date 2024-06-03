@@ -6,8 +6,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import java.io.Console
+import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.time.ZoneOffset
+
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = LocalDate::class)
@@ -31,4 +35,13 @@ class LocalDateConverters {
     fun dateToString(date: LocalDate?): String? {
         return date?.toString()
     }
+}
+
+fun LocalDate.toEpochMilli(): Long {
+    //val zoneId = ZoneId.systemDefault()
+    return this.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+}
+
+fun Long.toLocalDate(): LocalDate {
+    return Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 }
