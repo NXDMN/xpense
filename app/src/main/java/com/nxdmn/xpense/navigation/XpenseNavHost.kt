@@ -33,7 +33,8 @@ fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRe
         )
         expenseDetailScreen(
             expenseRepository,
-            onNavigateToExpenseList = { navController.navigateToExpenseList() }
+            onNavigateToExpenseList = { navController.navigateToExpenseList() },
+            onNavigateBack = { navController.popBackStack() }
         )
         settingScreen()
     }
@@ -73,7 +74,8 @@ fun NavGraphBuilder.expenseListScreen(
 
 fun NavGraphBuilder.expenseDetailScreen(
     expenseRepository: ExpenseRepository,
-    onNavigateToExpenseList: () -> Unit
+    onNavigateToExpenseList: () -> Unit,
+    onNavigateBack: () -> Unit
 ){
     composable(
         route = ExpenseDetail.routeWithArgs,
@@ -82,7 +84,8 @@ fun NavGraphBuilder.expenseDetailScreen(
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
         ExpenseDetailScreen(
             ExpenseDetailViewModel(expenseRepository, expenseId?.toLong()),
-            onNavigateToExpenseList
+            onNavigateToExpenseList,
+            onNavigateBack
         )
     }
 }

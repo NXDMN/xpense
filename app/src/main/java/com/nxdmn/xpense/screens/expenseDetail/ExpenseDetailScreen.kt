@@ -7,9 +7,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,7 +42,8 @@ import com.nxdmn.xpense.helpers.toEpochMilli
 @Composable
 fun ExpenseDetailScreen(
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(),
-    onNavigateToList: () -> Unit = {}
+    onNavigateToList: () -> Unit = {},
+    onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
     val expense: ExpenseModel = expenseDetailUiState.expense
@@ -52,7 +57,15 @@ fun ExpenseDetailScreen(
                 ),
                 title = {
                     Text("Expense")
-                }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
             )
         },
     ) { innerPadding ->
