@@ -11,7 +11,7 @@ import java.time.LocalDate
 @Serializable
 @Parcelize
 data class ExpenseModel(var id: Long = 0,
-                        var amount: Int = 0,
+                        var amount: Double = 0.0,
                         @Serializable(with = LocalDateSerializer::class)
                         var date: LocalDate = LocalDate.now(),
                         var category: String = "",
@@ -21,7 +21,7 @@ data class ExpenseModel(var id: Long = 0,
 @TypeConverters(LocalDateConverters::class)
 @Entity
 data class ExpenseEntity(@PrimaryKey(autoGenerate = true) var id: Long = 0,
-                         var amount: Int = 0,
+                         var amount: Double = 0.0,
                          var date: LocalDate = LocalDate.now(),
                          var category: String = "",
                          var remarks: String = "",

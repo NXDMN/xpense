@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -30,8 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
@@ -76,8 +80,19 @@ fun ExpenseDetailScreen(
             var amount by remember { mutableStateOf(expense.amount.toString()) }
             TextField(
                 value = amount,
-                onValueChange = { amount = it },
-                label = { Text("Amount") }
+                onValueChange = {
+                    amount = if (it.isEmpty()){
+                        it.trim()
+                    } else {
+                        when (it.toDoubleOrNull()) {
+                            null -> amount
+                            else -> it.trim()
+                        }
+                    }
+                },
+                label = { Text("Amount") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
@@ -126,7 +141,7 @@ fun ExpenseDetailScreen(
             }
 
             Button(onClick = {
-                expense.amount = amount.toIntOrNull() ?: 0
+                expense.amount = amount.toDoubleOrNull() ?: 0.0
                 expense.remarks = remarks
 
                 if (expense.amount >= 0) {
