@@ -4,7 +4,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -20,12 +22,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Label
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -116,13 +120,19 @@ fun ExpenseDetailScreen(
             )
 
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
-            DatePicker(
-                state = datePickerState,
-                modifier = Modifier.padding(16.dp),
-                title = null,
-                headline = null,
-                showModeToggle = false,
-            )
+
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.padding(10.dp),
+                shape = RoundedCornerShape(20.dp),
+            ) {
+                DatePicker(
+                    state = datePickerState,
+                    title = null,
+                    headline = null,
+                    showModeToggle = false
+                )
+            }
 
             var category by remember { mutableStateOf(expense.category) }
             TextField(
@@ -214,16 +224,22 @@ fun TestPreview() {
                 onValueChanged = {},
             )
 
-            DatePicker(
-                state = rememberDatePickerState(),
-                modifier = Modifier.padding(16.dp),
-                title = null,
-                headline = null,
-                showModeToggle = false,
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.padding(16.dp),
+                shape = RoundedCornerShape(20.dp)
+
+                ) {
+                DatePicker(
+                    state = rememberDatePickerState(),
+                    title = null,
+                    headline = null,
+                    showModeToggle = false,
+                    colors = DatePickerDefaults.colors(
+                        containerColor = Color.Blue
+                    )
                 )
-            )
+            }
 
             TextField(
                 value = "",
