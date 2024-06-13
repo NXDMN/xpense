@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -65,6 +69,7 @@ import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.ui.components.CurrencyTextField
+import java.nio.file.WatchEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +105,8 @@ fun ExpenseDetailScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(10.dp),
+                .padding(horizontal = 20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -120,10 +126,9 @@ fun ExpenseDetailScreen(
             )
 
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
-
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(bottom = 20.dp),
                 shape = RoundedCornerShape(20.dp),
             ) {
                 DatePicker(
@@ -137,6 +142,7 @@ fun ExpenseDetailScreen(
             var category by remember { mutableStateOf(expense.category) }
             TextField(
                 value = category,
+                modifier = Modifier.fillMaxWidth(),
                 onValueChange = { category = it },
                 label = { Text("Category") }
             )
@@ -144,6 +150,7 @@ fun ExpenseDetailScreen(
             var remarks by remember { mutableStateOf(expense.remarks) }
             TextField(
                 value = remarks,
+                modifier = Modifier.fillMaxWidth(),
                 onValueChange = { remarks = it },
                 label = { Text("Remarks") }
             )
@@ -151,9 +158,11 @@ fun ExpenseDetailScreen(
             val context = LocalContext.current
             var imageBitmap by remember { mutableStateOf(readImageFromPath(context, expense.image)) }
             imageBitmap?.let {
+                it.prepareToDraw()
                 Image(
                     bitmap = it.asImageBitmap(),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(300.dp)
                 )
             }
 
@@ -181,8 +190,10 @@ fun ExpenseDetailScreen(
                     Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
 
             }) {
-                Text("Add")
+                Text("Save")
             }
+            
+            Spacer(modifier = Modifier.padding(bottom = 30.dp))
         }
     }
 }
@@ -215,7 +226,8 @@ fun TestPreview() {
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(10.dp),
+                .padding(10.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
