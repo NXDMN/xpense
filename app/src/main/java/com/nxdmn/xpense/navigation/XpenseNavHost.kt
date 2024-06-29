@@ -42,13 +42,12 @@ fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRe
 
 fun NavHostController.navigateSingleTopTo(route: String) =
     this.navigate(route) {
-//        popUpTo(
-//            this@navigateSingleTopTo.graph.findStartDestination().id
-//        ) {
-//            saveState = true
-//        }
+        popUpTo(
+            this@navigateSingleTopTo.graph.findStartDestination().id
+        ) {
+            saveState = true
+        }
         launchSingleTop = true
-        restoreState = true
     }
 
 fun NavHostController.navigateToExpenseList() =
