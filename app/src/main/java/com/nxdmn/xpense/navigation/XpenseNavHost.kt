@@ -1,9 +1,12 @@
 package com.nxdmn.xpense.navigation
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,13 +20,18 @@ import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
 import com.nxdmn.xpense.screens.setting.SettingScreen
 import com.nxdmn.xpense.screens.setting.SettingViewModel
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRepository, modifier: Modifier) {
 
-    val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentDestination = currentBackStack?.destination
-    val currentScreen = bottomNavigationScreens.find { it.route == currentDestination?.route } ?: ExpenseList
+    navController.addOnDestinationChangedListener { controller, _, _ ->
+        val routes = controller
+            .currentBackStack.value
+            .map { it.destination.route }
+            .joinToString(", ")
 
+        Log.d("BackStackLog", "BackStack: $routes")
+    }
     NavHost(navController = navController, startDestination = ExpenseList.route, modifier = modifier) {
         expenseListScreen(
             expenseRepository,
