@@ -55,7 +55,7 @@ fun NavHostController.navigateToExpenseList() =
     this.navigateSingleTopTo(ExpenseList.route)
 
 fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
-    this.navigateSingleTopTo("${ExpenseDetail.route}?expenseId=$expenseId")
+    this.navigateSingleTopTo("${ExpenseDetail.routePrefix}?expenseId=$expenseId")
 
 fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Setting.route)
@@ -78,7 +78,7 @@ fun NavGraphBuilder.expenseDetailScreen(
     onNavigateBack: () -> Unit
 ){
     composable(
-        route = ExpenseDetail.routeWithArgs,
+        route = ExpenseDetail.route,
         arguments = ExpenseDetail.arguments
     ) { navBackStackEntry ->
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)

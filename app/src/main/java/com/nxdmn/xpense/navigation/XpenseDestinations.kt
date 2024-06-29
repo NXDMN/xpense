@@ -9,19 +9,21 @@ import androidx.navigation.navArgument
 
 interface XpenseDestination {
     val icon: ImageVector
+    val routePrefix: String
     val route: String
 }
 
 object ExpenseList : XpenseDestination {
     override val icon = Icons.AutoMirrored.Filled.List
+    override val routePrefix = "expenseList"
     override val route = "expenseList"
 }
 
 object ExpenseDetail : XpenseDestination {
     override val icon = Icons.Filled.Info
-    override val route = "expenseDetail"
+    override val routePrefix = "expenseDetail"
     const val expenseIdArg = "expenseId"
-    val routeWithArgs = "$route?expenseId={$expenseIdArg}"
+    override val route = "$routePrefix?expenseId={$expenseIdArg}"
     val arguments = listOf(navArgument(expenseIdArg){
         nullable = true
     })
@@ -29,7 +31,8 @@ object ExpenseDetail : XpenseDestination {
 
 object Setting : XpenseDestination {
     override val icon = Icons.Filled.Settings
+    override val routePrefix = "setting"
     override val route = "setting"
 }
 
-val bottomNavigationScreens = listOf(ExpenseList, Setting)
+val bottomNavigationScreens = listOf(ExpenseList, Setting, ExpenseDetail)
