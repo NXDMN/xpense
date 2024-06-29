@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -64,16 +65,22 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
+import com.nxdmn.xpense.navigation.ExpenseList
+import com.nxdmn.xpense.navigation.Setting
+import com.nxdmn.xpense.navigation.navigateToExpenseList
+import com.nxdmn.xpense.navigation.navigateToSetting
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 import java.nio.file.WatchEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseDetailScreen(
+    appBarState: AppBarState,
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(),
     onNavigateToList: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
@@ -178,12 +185,22 @@ fun ExpenseDetailScreen(
             }) {
                 Text("Add Image")
             }
+            appBarState.saveExpenseDetail = {
+                expense.amount = amount.toDoubleOrNull() ?: 0.0
+                expense.remarks = remarks
+
+                if (expense.amount > 0.0) {
+                    expenseDetailViewModel.saveExpense(expense)
+                    onNavigateToList()
+                } else
+                    Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
+            }
 
             Button(onClick = {
                 expense.amount = amount.toDoubleOrNull() ?: 0.0
                 expense.remarks = remarks
 
-                if (expense.amount >= 0) {
+                if (expense.amount > 0.0) {
                     expenseDetailViewModel.saveExpense(expense)
                     onNavigateToList()
                 } else

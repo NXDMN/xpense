@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
@@ -22,8 +23,12 @@ import com.nxdmn.xpense.screens.setting.SettingViewModel
 
 @SuppressLint("RestrictedApi")
 @Composable
-fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRepository, modifier: Modifier) {
-
+fun XpenseNavHost(
+    navController: NavHostController,
+    modifier: Modifier,
+    appBarState: AppBarState,
+    expenseRepository: ExpenseRepository,
+) {
     navController.addOnDestinationChangedListener { controller, _, _ ->
         val routes = controller
             .currentBackStack.value
@@ -40,6 +45,7 @@ fun XpenseNavHost(navController: NavHostController, expenseRepository: ExpenseRe
             }
         )
         expenseDetailScreen(
+            appBarState,
             expenseRepository,
             onNavigateToExpenseList = { navController.navigateToExpenseList() },
             onNavigateBack = { navController.popBackStack() }
@@ -80,6 +86,7 @@ fun NavGraphBuilder.expenseListScreen(
 }
 
 fun NavGraphBuilder.expenseDetailScreen(
+    appBarState: AppBarState,
     expenseRepository: ExpenseRepository,
     onNavigateToExpenseList: () -> Unit,
     onNavigateBack: () -> Unit
@@ -90,6 +97,7 @@ fun NavGraphBuilder.expenseDetailScreen(
     ) { navBackStackEntry ->
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
         ExpenseDetailScreen(
+            appBarState,
             ExpenseDetailViewModel(expenseRepository, expenseId?.toLong()),
             onNavigateToExpenseList,
             onNavigateBack
