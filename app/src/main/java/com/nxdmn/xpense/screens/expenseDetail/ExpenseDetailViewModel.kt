@@ -1,6 +1,5 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nxdmn.xpense.data.models.ExpenseModel
