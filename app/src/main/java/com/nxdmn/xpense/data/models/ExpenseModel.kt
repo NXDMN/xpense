@@ -1,22 +1,19 @@
 package com.nxdmn.xpense.data.models
 
-import android.os.Parcelable
 import androidx.room.*
 import com.nxdmn.xpense.helpers.LocalDateConverters
 import com.nxdmn.xpense.helpers.LocalDateSerializer
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 @Serializable
-@Parcelize
 data class ExpenseModel(var id: Long = 0,
                         var amount: Double = 0.0,
                         @Serializable(with = LocalDateSerializer::class)
                         var date: LocalDate = LocalDate.now(),
                         var category: String = "",
                         var remarks: String = "",
-                        var image: String = "") : Parcelable
+                        var image: String = "")
 
 @TypeConverters(LocalDateConverters::class)
 @Entity
