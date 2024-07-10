@@ -25,10 +25,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nxdmn.xpense.ui.MoneytreeIcon
+import com.nxdmn.xpense.ui.CategoryIcon
 
 @Composable
-fun CategoryLabel(@DrawableRes iconId: Int, text: String, onClicked: () -> Unit = {}){
+fun CategoryLabel(icon: CategoryIcon, text: String, onClicked: () -> Unit = {}){
 
     var selected by remember{ mutableStateOf(false) }
 
@@ -54,7 +54,7 @@ fun CategoryLabel(@DrawableRes iconId: Int, text: String, onClicked: () -> Unit 
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painterResource(iconId), contentDescription = text)
+        Icon(painterResource(icon.resId), contentDescription = text)
         Text(text = text)
     }
 }
@@ -62,5 +62,5 @@ fun CategoryLabel(@DrawableRes iconId: Int, text: String, onClicked: () -> Unit 
 @Preview(showBackground = true)
 @Composable
 fun CategoryLabelPreview(){
-    CategoryLabel(MoneytreeIcon.LUNCH,"Food")
+    CategoryLabel(CategoryIcon.LUNCH,"Food")
 }
