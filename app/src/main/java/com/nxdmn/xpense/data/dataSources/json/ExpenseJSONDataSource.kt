@@ -10,34 +10,33 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Random
 
-const val JSON_FILE = "expenses.json"
-
-fun generateRandomId(): Long {
-    return Random().nextLong()
-}
+const val EXPENSES_JSON_FILE = "expenses.json"
 
 class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
     private var _expenses = mutableListOf<ExpenseModel>()
 
     init {
-        if (exists(context, JSON_FILE)) {
+        if (exists(context, EXPENSES_JSON_FILE)) {
             deserialize()
         }
     }
 
-    override suspend fun findAll(): MutableList<ExpenseModel> {
-        return _expenses
-    }
+    override suspend fun findAll(): List<ExpenseModel> = _expenses
 
     override suspend fun create(expense: ExpenseModel) {
-        expense.id = generateRandomId()
+        expense.id = Random().nextLong()
         _expenses.add(expense)
         serialize()
     }
 
     override suspend fun update(expense: ExpenseModel) {
-        val index = _expenses.indexOfFirst { it.id == expense.id }
-        _expenses[index] = _expenses[index].copy(amount = expense.amount, remarks = expense.remarks, image = expense.image)
+        _expenses.find { it.id == expense.id }?.apply {
+            amount = expense.amount
+            date = expense.date
+            category = expense.category
+            remarks = expense.remarks
+            image = expense.image
+        }
         serialize()
     }
 
@@ -48,12 +47,11 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
 
     private fun serialize(){
         val jsonString = Json.encodeToString(_expenses)
-        write(context, JSON_FILE, jsonString)
+        write(context, EXPENSES_JSON_FILE, jsonString)
     }
 
     private fun deserialize(){
-        val jsonString = read(context, JSON_FILE)
+        val jsonString = read(context, EXPENSES_JSON_FILE)
         _expenses = Json.decodeFromString(jsonString)
     }
-
 }
