@@ -7,13 +7,15 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 @Serializable
-data class ExpenseModel(var id: Long = 0,
-                        var amount: Double = 0.0,
-                        @Serializable(with = LocalDateSerializer::class)
-                        var date: LocalDate = LocalDate.now(),
-                        var category: String = "",
-                        var remarks: String = "",
-                        var image: String = "")
+data class ExpenseModel(
+    var id: Long = 0,
+    var amount: Double,
+    @Serializable(with = LocalDateSerializer::class)
+    var date: LocalDate = LocalDate.now(),
+    var category: CategoryModel,
+    var remarks: String = "",
+    var image: String = ""
+)
 
 @TypeConverters(LocalDateConverters::class)
 @Entity

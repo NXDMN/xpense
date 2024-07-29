@@ -2,39 +2,117 @@ package com.nxdmn.xpense.screens.expenseDetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
+import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
+import com.nxdmn.xpense.helpers.toLocalDate
+import com.nxdmn.xpense.screens.expenseList.ExpenseListUiState
+import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ExpenseDetailUiState(
-    val expense: ExpenseModel = ExpenseModel(),
+    val expense: ExpenseModel,
+    val categoryList: List<CategoryModel> = emptyList(),
     val isEdit: Boolean = false,
 )
 
-class ExpenseDetailViewModel(private val repository: ExpenseRepository, private val expenseId: Long?) : ViewModel() {
-    private val _uiState = MutableStateFlow(ExpenseDetailUiState())
+class ExpenseDetailViewModel(
+    private val expenseRepository: ExpenseRepository,
+    private val categoryRepository: CategoryRepository,
+    private val expenseId: Long?
+) : ViewModel() {
+    //TODO: make uistate to store real ui state value like amounr, date, image and use expenseModel only here
+
+    private val _uiState = MutableStateFlow(
+        ExpenseDetailUiState(
+            ExpenseModel(
+                amount = 0.0,
+                category = CategoryModel(name = "", icon = CategoryIcon.OTHERS)
+            )
+        )
+    )
     val uiState: StateFlow<ExpenseDetailUiState> = _uiState.asStateFlow()
 
     init {
-        val expense: ExpenseModel? = if(expenseId != null) repository.getExpense(expenseId) else null
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(categoryList = categoryRepository.getAllCategories())
+            }
+        }
 
-        if(expense != null)
-            _uiState.value = ExpenseDetailUiState(expense, true)
+        val expense: ExpenseModel? =
+            if (expenseId != null) expenseRepository.getExpense(expenseId) else null
+
+        if (expense != null)
+            _uiState.update { it.copy(expense = expense, isEdit = true) }
         else
-            _uiState.value = ExpenseDetailUiState()
+            _uiState.update { it.copy(expense = it.expense.copy(category = it.categoryList.first())) }
     }
 
-    fun saveExpense(expense: ExpenseModel){
+    fun saveExpense() {
+        val expense = _uiState.value.expense
         viewModelScope.launch {
             if (_uiState.value.isEdit) {
-                repository.updateExpense(expense.copy())
+                expenseRepository.updateExpense(expense.copy())
             } else {
-                repository.createExpense(expense.copy())
+                expenseRepository.createExpense(expense.copy())
             }
-            repository.getAllExpenses(refresh = true)
+            expenseRepository.getAllExpenses(refresh = true)
+        }
+    }
+
+    fun updateAmount(amount: String) {
+        _uiState.update {
+            it.copy(
+                expense = it.expense.copy(
+                    amount = amount.toDoubleOrNull() ?: 0.0
+                )
+            )
+        }
+    }
+
+    fun updateDate(date: Long) {
+        _uiState.update {
+            it.copy(
+                expense = it.expense.copy(
+                    date = date.toLocalDate()
+                )
+            )
+        }
+    }
+
+    fun updateCategory(category: CategoryModel) {
+        _uiState.update {
+            it.copy(
+                expense = it.expense.copy(
+                    category = category
+                )
+            )
+        }
+    }
+
+    fun updateRemarks(remarks: String) {
+        _uiState.update {
+            it.copy(
+                expense = it.expense.copy(
+                    remarks = remarks
+                )
+            )
+        }
+    }
+
+    fun updateImage(image: String) {
+        _uiState.update {
+            it.copy(
+                expense = it.expense.copy(
+                    image = image
+                )
+            )
         }
     }
 }

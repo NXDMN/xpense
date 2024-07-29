@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
@@ -25,6 +26,7 @@ fun XpenseNavHost(
     modifier: Modifier,
     appBarState: AppBarState,
     expenseRepository: ExpenseRepository,
+    categoryRepository: CategoryRepository,
 ) {
     navController.addOnDestinationChangedListener { controller, _, _ ->
         val routes = controller
@@ -34,7 +36,11 @@ fun XpenseNavHost(
 
         Log.d("BackStackLog", "BackStack: $routes")
     }
-    NavHost(navController = navController, startDestination = ExpenseList.route, modifier = modifier) {
+    NavHost(
+        navController = navController,
+        startDestination = ExpenseList.route,
+        modifier = modifier
+    ) {
         expenseListScreen(
             expenseRepository,
             onNavigateToExpenseDetail = { expenseId ->
@@ -44,6 +50,7 @@ fun XpenseNavHost(
         expenseDetailScreen(
             appBarState,
             expenseRepository,
+            categoryRepository,
             onNavigateToExpenseList = { navController.navigateToExpenseList() },
             onNavigateBack = { navController.popBackStack() }
         )
@@ -73,7 +80,7 @@ fun NavHostController.navigateToSetting() =
 fun NavGraphBuilder.expenseListScreen(
     expenseRepository: ExpenseRepository,
     onNavigateToExpenseDetail: (Long?) -> Unit
-){
+) {
     composable(route = ExpenseList.route) {
         ExpenseListScreen(
             ExpenseListViewModel(expenseRepository),
@@ -85,9 +92,10 @@ fun NavGraphBuilder.expenseListScreen(
 fun NavGraphBuilder.expenseDetailScreen(
     appBarState: AppBarState,
     expenseRepository: ExpenseRepository,
+    categoryRepository: CategoryRepository,
     onNavigateToExpenseList: () -> Unit,
     onNavigateBack: () -> Unit
-){
+) {
     composable(
         route = ExpenseDetail.route,
         arguments = ExpenseDetail.arguments
@@ -95,14 +103,14 @@ fun NavGraphBuilder.expenseDetailScreen(
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
         ExpenseDetailScreen(
             appBarState,
-            ExpenseDetailViewModel(expenseRepository, expenseId?.toLong()),
+            ExpenseDetailViewModel(expenseRepository, categoryRepository, expenseId?.toLong()),
             onNavigateToExpenseList,
             onNavigateBack
         )
     }
 }
 
-fun NavGraphBuilder.settingScreen(){
+fun NavGraphBuilder.settingScreen() {
     composable(route = Setting.route) {
         SettingScreen(SettingViewModel())
     }

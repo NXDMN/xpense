@@ -22,7 +22,10 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nxdmn.xpense.data.dataSources.json.CategoryJSONDataSource
+import com.nxdmn.xpense.data.dataSources.json.ExpenseJSONDataSource
 import com.nxdmn.xpense.data.dataSources.room.ExpenseRoomDataSource
+import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.navigation.ExpenseDetail
 import com.nxdmn.xpense.navigation.ExpenseList
@@ -39,7 +42,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContent{
+        setContent {
             XpenseApp(applicationContext)
         }
     }
@@ -51,7 +54,8 @@ private fun XpenseApp(context: Context) {
         val navController = rememberNavController()
         val appBarState = rememberAppBarState(navController)
 
-        val expenseRepository = ExpenseRepository(ExpenseRoomDataSource(context))
+        val expenseRepository = ExpenseRepository(ExpenseJSONDataSource(context))
+        val categoryRepository = CategoryRepository(CategoryJSONDataSource(context))
 
         Scaffold(
             bottomBar = {
@@ -67,7 +71,7 @@ private fun XpenseApp(context: Context) {
                         }
                     },
                     floatingActionButton = {
-                        if(appBarState.currentScreen == ExpenseDetail){
+                        if (appBarState.currentScreen == ExpenseDetail) {
                             FloatingActionButton(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.inversePrimary,
@@ -75,10 +79,12 @@ private fun XpenseApp(context: Context) {
                                     appBarState.saveExpenseDetail?.let { it() }
                                 }
                             ) {
-                                Icon(painterResource(R.drawable.baseline_save_24), contentDescription = "Save")
+                                Icon(
+                                    painterResource(R.drawable.baseline_save_24),
+                                    contentDescription = "Save"
+                                )
                             }
-                        }
-                        else{
+                        } else {
                             FloatingActionButton(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.inversePrimary,
@@ -98,6 +104,7 @@ private fun XpenseApp(context: Context) {
                 modifier = Modifier.padding(innerPadding),
                 appBarState = appBarState,
                 expenseRepository = expenseRepository,
+                categoryRepository = categoryRepository
             )
         }
     }
@@ -105,13 +112,14 @@ private fun XpenseApp(context: Context) {
 }
 
 @Stable
-class AppBarState(private val navController: NavHostController){
+class AppBarState(private val navController: NavHostController) {
 
     val currentDestination: NavDestination?
         @Composable get() = navController.currentBackStackEntryAsState().value?.destination
 
     val currentScreen
-        @Composable get() = bottomNavigationScreens.find { it.route == currentDestination?.route } ?: ExpenseList
+        @Composable get() = bottomNavigationScreens.find { it.route == currentDestination?.route }
+            ?: ExpenseList
 
     var saveExpenseDetail: (() -> Unit)? = null
 }

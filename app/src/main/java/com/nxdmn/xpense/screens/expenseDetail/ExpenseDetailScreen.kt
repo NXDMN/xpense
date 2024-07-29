@@ -6,10 +6,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -49,9 +52,13 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
+import com.nxdmn.xpense.helpers.toLocalDate
+import com.nxdmn.xpense.screens.expenseList.ExpenseCard
+import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
@@ -91,11 +98,11 @@ fun ExpenseDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            var amount by remember { mutableStateOf(if(expense.amount == 0.0) "" else expense.amount.toString()) }
+            var amount by remember { mutableStateOf(if (expense.amount == 0.0) "" else expense.amount.toString()) }
             CurrencyTextField(
                 amount = amount,
                 onValueChanged = {
-                    amount = if (it.isEmpty()){
+                    amount = if (it.isEmpty()) {
                         it.trim()
                     } else {
                         when (it.toDoubleOrNull()) {
@@ -103,10 +110,15 @@ fun ExpenseDetailScreen(
                             else -> it.trim()
                         }
                     }
+                    expenseDetailViewModel.updateAmount(amount)
                 },
             )
 
-            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
+            val datePickerState =
+                rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
+            datePickerState.selectedDateMillis?.let {
+                expenseDetailViewModel.updateDate(it)
+            }
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.padding(bottom = 20.dp),
@@ -121,23 +133,32 @@ fun ExpenseDetailScreen(
             }
 
             var category by remember { mutableStateOf(expense.category) }
-            TextField(
-                value = category,
-                modifier = Modifier.fillMaxWidth(),
-                onValueChange = { category = it },
-                label = { Text("Category") }
-            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                expenseDetailUiState.categoryList.forEach {
+                    CategoryLabel(icon = it.icon, text = it.name)
+                }
+            }
 
             var remarks by remember { mutableStateOf(expense.remarks) }
             TextField(
                 value = remarks,
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = { remarks = it },
+                onValueChange = {
+                    remarks = it
+                    expenseDetailViewModel.updateRemarks(remarks)
+                },
                 label = { Text("Remarks") }
             )
 
             val context = LocalContext.current
-            var imageBitmap by remember { mutableStateOf(readImageFromPath(context, expense.image)) }
+            var imageBitmap by remember {
+                mutableStateOf(
+                    readImageFromPath(
+                        context,
+                        expense.image
+                    )
+                )
+            }
             imageBitmap?.let {
                 it.prepareToDraw()
                 Image(
@@ -147,43 +168,28 @@ fun ExpenseDetailScreen(
                 )
             }
 
-            val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-                if (uri != null) {
-                    expense.image = uri.toString()
-                    imageBitmap =
-                        readImage(context.contentResolver, uri)
+            val imagePicker =
+                rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                    if (uri != null) {
+                        expenseDetailViewModel.updateImage(uri.toString())
+                        imageBitmap =
+                            readImage(context.contentResolver, uri)
+                    }
                 }
-            }
             Button(onClick = {
                 imagePicker.launch("image/*")
             }) {
                 Text("Add Image")
             }
+
             appBarState.saveExpenseDetail = {
-                expense.amount = amount.toDoubleOrNull() ?: 0.0
-                expense.remarks = remarks
-
                 if (expense.amount > 0.0) {
-                    expenseDetailViewModel.saveExpense(expense)
+                    expenseDetailViewModel.saveExpense()
                     onNavigateToList()
                 } else
                     Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
             }
 
-            Button(onClick = {
-                expense.amount = amount.toDoubleOrNull() ?: 0.0
-                expense.remarks = remarks
-
-                if (expense.amount > 0.0) {
-                    expenseDetailViewModel.saveExpense(expense)
-                    onNavigateToList()
-                } else
-                    Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
-
-            }) {
-                Text("Save")
-            }
-            
             Spacer(modifier = Modifier.padding(bottom = 30.dp))
         }
     }
@@ -229,10 +235,10 @@ fun TestPreview() {
 
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(16.dp),
                 shape = RoundedCornerShape(20.dp)
 
-                ) {
+            ) {
                 DatePicker(
                     state = rememberDatePickerState(),
                     title = null,
