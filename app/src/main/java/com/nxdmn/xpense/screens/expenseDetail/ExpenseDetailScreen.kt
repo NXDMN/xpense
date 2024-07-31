@@ -1,10 +1,12 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -48,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
@@ -133,10 +136,9 @@ fun ExpenseDetailScreen(
             }
 
             var category by remember { mutableStateOf(expense.category) }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                expenseDetailUiState.categoryList.forEach {
-                    CategoryLabel(icon = it.icon, text = it.name)
-                }
+            CategorySection(expenseDetailUiState.categoryList, category) {
+                category = it
+                expenseDetailViewModel.updateCategory(category)
             }
 
             var remarks by remember { mutableStateOf(expense.remarks) }
@@ -195,8 +197,31 @@ fun ExpenseDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(device = Devices.PIXEL_7_PRO)
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun CategorySection(
+    categoryList: List<CategoryModel>,
+    selectedCategory: CategoryModel,
+    onCategorySelected: (CategoryModel) -> Unit
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        categoryList.forEach {
+            CategoryLabel(
+                icon = it.icon,
+                text = it.name,
+                selected = selectedCategory.id == it.id,
+                onClicked = {
+                    onCategorySelected(it)
+                })
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Preview(device = Devices.PIXEL_7_PRO, heightDp = 2000)
 @Composable
 fun TestPreview() {
     Scaffold(
@@ -223,7 +248,7 @@ fun TestPreview() {
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(10.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -250,11 +275,32 @@ fun TestPreview() {
                 )
             }
 
-            TextField(
-                value = "",
-                onValueChange = { },
-                label = { Text("Category") }
+            var selected by remember {
+                mutableStateOf(CategoryModel(name = "Food", icon = CategoryIcon.EATING))
+            }
+            CategorySection(
+                listOf(
+                    CategoryModel(name = "Food", icon = CategoryIcon.EATING),
+                    CategoryModel(name = "Clothes", icon = CategoryIcon.CLOTHING),
+                    CategoryModel(name = "Others", icon = CategoryIcon.OTHERS),
+                    CategoryModel(name = "Entertainment", icon = CategoryIcon.ENTERTAINMENT),
+                    CategoryModel(name = "Family", icon = CategoryIcon.FAMILY),
+                    CategoryModel(name = "Fuel", icon = CategoryIcon.FUEL),
+                    CategoryModel(name = "Gift", icon = CategoryIcon.GIFT),
+                    CategoryModel(name = "Groceries", icon = CategoryIcon.GROCERIES),
+                    CategoryModel(name = "Rental", icon = CategoryIcon.HOME),
+                    CategoryModel(name = "Medical", icon = CategoryIcon.MEDICAL),
+                    CategoryModel(name = "Phone bill", icon = CategoryIcon.PHONE_BILL),
+                    CategoryModel(name = "Shopping", icon = CategoryIcon.SHOPPING),
+                    CategoryModel(name = "Sports", icon = CategoryIcon.SPORTS),
+                    CategoryModel(name = "Trip", icon = CategoryIcon.TRAVEL),
+                    CategoryModel(name = "Utilities", icon = CategoryIcon.UTILITIES),
+                    CategoryModel(name = "Insurance", icon = CategoryIcon.LIFE),
+                ),
+                selected,
+                { selected = it }
             )
+
 
             TextField(
                 value = "",

@@ -28,9 +28,15 @@ import androidx.compose.ui.unit.dp
 import com.nxdmn.xpense.ui.CategoryIcon
 
 @Composable
-fun CategoryLabel(icon: CategoryIcon, text: String, onClicked: () -> Unit = {}){
+fun CategoryLabel(
+    icon: CategoryIcon,
+    text: String,
+    selected: Boolean = false,
+    onClicked: () -> Unit = {},
+    allowDeselect: Boolean = false,
+) {
 
-    var selected by remember{ mutableStateOf(false) }
+    var isSelected by remember(key1 = selected) { mutableStateOf(selected) }
 
     val shape = RoundedCornerShape(6.dp)
 
@@ -42,12 +48,12 @@ fun CategoryLabel(icon: CategoryIcon, text: String, onClicked: () -> Unit = {}){
                 remember { MutableInteractionSource() },
                 indication = rememberRipple(),
                 onClick = {
-                    selected = !selected
+                    if (allowDeselect) isSelected = !isSelected
                     onClicked()
                 }
             )
             .let {
-                if (selected) it.background(MaterialTheme.colorScheme.primaryContainer)
+                if (isSelected) it.background(MaterialTheme.colorScheme.primaryContainer)
                 else it
             }
             .padding(10.dp),
@@ -61,6 +67,6 @@ fun CategoryLabel(icon: CategoryIcon, text: String, onClicked: () -> Unit = {}){
 
 @Preview(showBackground = true)
 @Composable
-fun CategoryLabelPreview(){
-    CategoryLabel(CategoryIcon.LUNCH,"Food")
+fun CategoryLabelPreview() {
+    CategoryLabel(CategoryIcon.LUNCH, "Food")
 }
