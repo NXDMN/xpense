@@ -33,7 +33,7 @@ fun CategoryLabel(
     text: String,
     selected: Boolean = false,
     onClicked: () -> Unit = {},
-    allowDeselect: Boolean = false,
+    allowToggle: Boolean = false,
 ) {
 
     var isSelected by remember(key1 = selected) { mutableStateOf(selected) }
@@ -48,7 +48,7 @@ fun CategoryLabel(
                 remember { MutableInteractionSource() },
                 indication = rememberRipple(),
                 onClick = {
-                    if (allowDeselect) isSelected = !isSelected
+                    if (allowToggle) isSelected = !isSelected
                     onClicked()
                 }
             )
