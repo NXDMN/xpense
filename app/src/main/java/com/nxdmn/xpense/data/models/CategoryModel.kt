@@ -1,5 +1,9 @@
 package com.nxdmn.xpense.data.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.nxdmn.xpense.helpers.CategoryIconConverters
 import com.nxdmn.xpense.helpers.EnumSerializer
 import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.serialization.Serializable
@@ -17,3 +21,12 @@ data class CategoryModel(
         CategoryIcon.entries
     )
 }
+
+@TypeConverters(CategoryIconConverters::class)
+@Entity
+data class CategoryEntity(
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
+    var name: String,
+    var icon: CategoryIcon,
+    var count: Int = 0
+)

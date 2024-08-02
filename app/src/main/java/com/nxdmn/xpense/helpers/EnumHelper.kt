@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.helpers
 
+import androidx.room.TypeConverter
 import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -47,4 +48,13 @@ open class EnumSerializer<E : Enum<E>>(
         }
         return entries[index]
     }
+}
+
+class CategoryIconConverters {
+    @TypeConverter
+    fun fromInt(value: Int?): CategoryIcon? =
+        if (value != null) enumValues<CategoryIcon>()[value] else null
+
+    @TypeConverter
+    fun toInt(value: CategoryIcon?): Int? = value?.ordinal
 }

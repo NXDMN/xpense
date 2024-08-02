@@ -92,9 +92,4 @@ enum class CategoryIcon(@DrawableRes val resId: Int) {
     WATER(R.drawable.moneytree_water),
     WATER_BILL(R.drawable.moneytree_water_bill),
     WELFARE(R.drawable.moneytree_welfare);
-
-    companion object {
-        @DrawableRes
-        fun asRes(stored: Int): Int = entries.first{ it.ordinal == stored}.resId
-    }
 }
