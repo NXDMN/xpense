@@ -30,3 +30,17 @@ data class CategoryEntity(
     var icon: CategoryIcon,
     var count: Int = 0
 )
+
+fun CategoryModel.asEntity() = CategoryEntity(
+    id = id,
+    name = name,
+    icon = icon,
+    count = count
+)
+
+fun CategoryEntity.asModel() = CategoryModel(
+    id = id,
+    name = name,
+    icon = icon,
+    count = count
+)

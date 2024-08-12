@@ -4,13 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.nxdmn.xpense.data.models.CategoryEntity
 import com.nxdmn.xpense.data.models.ExpenseEntity
 import kotlin.concurrent.Volatile
 
-@Database(entities = [ExpenseEntity::class], version = 1)
+@Database(entities = [ExpenseEntity::class, CategoryEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile
