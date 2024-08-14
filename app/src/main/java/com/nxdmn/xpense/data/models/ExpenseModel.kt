@@ -18,25 +18,38 @@ data class ExpenseModel(
 )
 
 @TypeConverters(LocalDateConverters::class)
-@Entity
-data class ExpenseEntity(@PrimaryKey(autoGenerate = true) var id: Long = 0,
-                         var amount: Double = 0.0,
-                         var date: LocalDate = LocalDate.now(),
-                         var category: String = "",
-                         var remarks: String = "",
-                         var image: String = "")
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["categoryId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("categoryId")]
+)
+data class ExpenseEntity(
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
+    var amount: Double,
+    var date: LocalDate = LocalDate.now(),
+    var categoryId: Long,
+    var remarks: String = "",
+    var image: String = ""
+)
 
 
 fun ExpenseModel.asEntity() = ExpenseEntity(
     id = id,
     amount = amount,
     date = date,
-    category = category,
+    categoryId = category.id,
     remarks = remarks,
     image = image,
 )
 
-fun ExpenseEntity.asModel() = ExpenseModel(
+fun ExpenseEntity.asModel(category: CategoryModel) = ExpenseModel(
     id = id,
     amount = amount,
     date = date,

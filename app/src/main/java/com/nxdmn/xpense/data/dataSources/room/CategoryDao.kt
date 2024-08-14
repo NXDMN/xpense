@@ -2,6 +2,7 @@ package com.nxdmn.xpense.data.dataSources.room
 
 import androidx.room.*
 import com.nxdmn.xpense.data.models.CategoryEntity
+import com.nxdmn.xpense.data.relations.CategoryWithExpenses
 
 @Dao
 interface CategoryDao {
@@ -19,4 +20,8 @@ interface CategoryDao {
 
     @Delete
     suspend fun delete(category: CategoryEntity)
+
+    @Transaction
+    @Query("SELECT * FROM CategoryEntity")
+    fun getCategoryWithExpenses(): List<CategoryWithExpenses>
 }

@@ -5,6 +5,8 @@ import com.nxdmn.xpense.data.dataSources.CategoryDataSource
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.asEntity
 import com.nxdmn.xpense.data.models.asModel
+import com.nxdmn.xpense.data.relations.CategoryWithExpensesModel
+import com.nxdmn.xpense.data.relations.asModel
 
 class CategoryRoomDataSource(private val context: Context) : CategoryDataSource {
 
@@ -28,5 +30,9 @@ class CategoryRoomDataSource(private val context: Context) : CategoryDataSource 
 
     suspend fun findById(id: Long): CategoryModel {
         return dao.findById(id).asModel()
+    }
+
+    suspend fun getCategoryWithExpenses(): List<CategoryWithExpensesModel> {
+        return dao.getCategoryWithExpenses().map { it.asModel() }
     }
 }

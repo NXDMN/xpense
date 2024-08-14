@@ -4,14 +4,14 @@ import android.content.Context
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.dataSources.ExpenseDataSource
 import com.nxdmn.xpense.data.models.asEntity
-import com.nxdmn.xpense.data.models.asModel
+import com.nxdmn.xpense.data.relations.asModel
 
 class ExpenseRoomDataSource(private val context: Context) : ExpenseDataSource {
 
     private var dao: ExpenseDao = AppDatabase.getDatabase(context).expenseDao()
 
     override suspend fun findAll(): List<ExpenseModel> {
-        return dao.findAll().map { it.asModel() }
+        return dao.getExpenseWithCategory().map { it.asModel() }
     }
 
     override suspend fun create(expense: ExpenseModel) {
