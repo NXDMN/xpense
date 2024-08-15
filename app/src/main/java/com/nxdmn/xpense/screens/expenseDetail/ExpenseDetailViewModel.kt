@@ -43,15 +43,15 @@ class ExpenseDetailViewModel(
             _uiState.update {
                 it.copy(categoryList = categoryRepository.getAllCategories())
             }
+
+            val expense: ExpenseModel? =
+                if (expenseId != null) expenseRepository.getExpense(expenseId) else null
+
+            if (expense != null)
+                _uiState.update { it.copy(expense = expense, isEdit = true) }
+            else
+                _uiState.update { it.copy(expense = it.expense.copy(category = it.categoryList.first())) }
         }
-
-        val expense: ExpenseModel? =
-            if (expenseId != null) expenseRepository.getExpense(expenseId) else null
-
-        if (expense != null)
-            _uiState.update { it.copy(expense = expense, isEdit = true) }
-        else
-            _uiState.update { it.copy(expense = it.expense.copy(category = it.categoryList.first())) }
     }
 
     fun saveExpense() {
