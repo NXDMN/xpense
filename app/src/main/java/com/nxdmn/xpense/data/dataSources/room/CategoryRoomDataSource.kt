@@ -8,9 +8,7 @@ import com.nxdmn.xpense.data.models.asModel
 import com.nxdmn.xpense.data.relations.CategoryWithExpensesModel
 import com.nxdmn.xpense.data.relations.asModel
 
-class CategoryRoomDataSource(private val context: Context) : CategoryDataSource {
-
-    private var dao: CategoryDao = AppDatabase.getDatabase(context).categoryDao()
+class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource {
 
     override suspend fun findAll(): List<CategoryModel> {
         return dao.findAll().map { it.asModel() }

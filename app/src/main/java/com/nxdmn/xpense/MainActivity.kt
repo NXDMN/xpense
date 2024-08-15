@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nxdmn.xpense.data.dataSources.json.CategoryJSONDataSource
 import com.nxdmn.xpense.data.dataSources.json.ExpenseJSONDataSource
+import com.nxdmn.xpense.data.dataSources.room.AppDatabase
 import com.nxdmn.xpense.data.dataSources.room.CategoryRoomDataSource
 import com.nxdmn.xpense.data.dataSources.room.ExpenseRoomDataSource
 import com.nxdmn.xpense.data.repositories.CategoryRepository
@@ -55,8 +56,13 @@ private fun XpenseApp(context: Context) {
         val navController = rememberNavController()
         val appBarState = rememberAppBarState(navController)
 
-        val expenseRepository = ExpenseRepository(ExpenseRoomDataSource(context))
-        val categoryRepository = CategoryRepository(CategoryRoomDataSource(context))
+        val expenseRepository =
+            ExpenseRepository(ExpenseRoomDataSource(AppDatabase.getDatabase(context).expenseDao()))
+        val categoryRepository = CategoryRepository(
+            CategoryRoomDataSource(
+                AppDatabase.getDatabase(context).categoryDao()
+            )
+        )
 
         Scaffold(
             bottomBar = {
