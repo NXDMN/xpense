@@ -20,7 +20,7 @@ class CategoryRepository(
             var data = categoryLocalDataSource.findAll()
 
             if (data.isEmpty()) data = generateDefaultList()
-            
+
             // Thread-safe write to expenseList
             getAllCategoriesMutex.withLock {
                 this.categoryList = data
@@ -36,22 +36,22 @@ class CategoryRepository(
 
     private suspend fun generateDefaultList(): List<CategoryModel> {
         return listOf(
-            CategoryModel(name = "Food", icon = CategoryIcon.EATING),
-            CategoryModel(name = "Clothes", icon = CategoryIcon.CLOTHING),
-            CategoryModel(name = "Others", icon = CategoryIcon.OTHERS),
-            CategoryModel(name = "Entertainment", icon = CategoryIcon.ENTERTAINMENT),
-            CategoryModel(name = "Family", icon = CategoryIcon.FAMILY),
-            CategoryModel(name = "Fuel", icon = CategoryIcon.FUEL),
-            CategoryModel(name = "Gift", icon = CategoryIcon.GIFT),
-            CategoryModel(name = "Groceries", icon = CategoryIcon.GROCERIES),
-            CategoryModel(name = "Rental", icon = CategoryIcon.HOME),
-            CategoryModel(name = "Medical", icon = CategoryIcon.MEDICAL),
-            CategoryModel(name = "Phone bill", icon = CategoryIcon.PHONE_BILL),
-            CategoryModel(name = "Shopping", icon = CategoryIcon.SHOPPING),
-            CategoryModel(name = "Sports", icon = CategoryIcon.SPORTS),
-            CategoryModel(name = "Trip", icon = CategoryIcon.TRAVEL),
-            CategoryModel(name = "Utilities", icon = CategoryIcon.UTILITIES),
-            CategoryModel(name = "Insurance", icon = CategoryIcon.LIFE),
+            CategoryModel(id = 1, name = "Food", icon = CategoryIcon.EATING),
+            CategoryModel(id = 2, name = "Clothes", icon = CategoryIcon.CLOTHING),
+            CategoryModel(id = 3, name = "Others", icon = CategoryIcon.OTHERS),
+            CategoryModel(id = 4, name = "Entertainment", icon = CategoryIcon.ENTERTAINMENT),
+            CategoryModel(id = 5, name = "Family", icon = CategoryIcon.FAMILY),
+            CategoryModel(id = 6, name = "Fuel", icon = CategoryIcon.FUEL),
+            CategoryModel(id = 7, name = "Gift", icon = CategoryIcon.GIFT),
+            CategoryModel(id = 8, name = "Groceries", icon = CategoryIcon.GROCERIES),
+            CategoryModel(id = 9, name = "Rental", icon = CategoryIcon.HOME),
+            CategoryModel(id = 10, name = "Medical", icon = CategoryIcon.MEDICAL),
+            CategoryModel(id = 11, name = "Phone bill", icon = CategoryIcon.PHONE_BILL),
+            CategoryModel(id = 12, name = "Shopping", icon = CategoryIcon.SHOPPING),
+            CategoryModel(id = 13, name = "Sports", icon = CategoryIcon.SPORTS),
+            CategoryModel(id = 14, name = "Trip", icon = CategoryIcon.TRAVEL),
+            CategoryModel(id = 15, name = "Utilities", icon = CategoryIcon.UTILITIES),
+            CategoryModel(id = 16, name = "Insurance", icon = CategoryIcon.LIFE),
         ).onEach { createCategory(it) }
     }
 }

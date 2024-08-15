@@ -7,13 +7,14 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.toLocalDate
-import com.nxdmn.xpense.screens.expenseList.ExpenseListUiState
 import com.nxdmn.xpense.ui.CategoryIcon
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class ExpenseDetailUiState(
     val expense: ExpenseModel,
@@ -32,7 +33,7 @@ class ExpenseDetailViewModel(
         ExpenseDetailUiState(
             ExpenseModel(
                 amount = 0.0,
-                category = CategoryModel(name = "", icon = CategoryIcon.OTHERS)
+                category = CategoryModel(id = 3, name = "", icon = CategoryIcon.OTHERS)
             )
         )
     )

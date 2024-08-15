@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -101,9 +102,12 @@ fun NavGraphBuilder.expenseDetailScreen(
         arguments = ExpenseDetail.arguments
     ) { navBackStackEntry ->
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
+        val vm = viewModel {
+            ExpenseDetailViewModel(expenseRepository, categoryRepository, expenseId?.toLong())
+        }
         ExpenseDetailScreen(
             appBarState,
-            ExpenseDetailViewModel(expenseRepository, categoryRepository, expenseId?.toLong()),
+            vm,
             onNavigateToExpenseList,
             onNavigateBack
         )

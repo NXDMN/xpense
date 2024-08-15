@@ -56,6 +56,9 @@ private fun XpenseApp(context: Context) {
         val navController = rememberNavController()
         val appBarState = rememberAppBarState(navController)
 
+//        val expenseRepository = ExpenseRepository(ExpenseJSONDataSource(context))
+//        val categoryRepository = CategoryRepository(CategoryJSONDataSource(context))
+
         val expenseRepository =
             ExpenseRepository(ExpenseRoomDataSource(AppDatabase.getDatabase(context).expenseDao()))
         val categoryRepository = CategoryRepository(
