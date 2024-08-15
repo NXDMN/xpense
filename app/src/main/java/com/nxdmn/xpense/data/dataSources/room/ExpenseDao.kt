@@ -23,5 +23,5 @@ interface ExpenseDao {
 
     @Transaction
     @Query("SELECT * FROM ExpenseEntity")
-    fun getExpenseWithCategory(): List<ExpenseWithCategory>
+    suspend fun getExpenseWithCategory(): List<ExpenseWithCategory>
 }

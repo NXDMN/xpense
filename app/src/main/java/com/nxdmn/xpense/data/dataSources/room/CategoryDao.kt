@@ -23,5 +23,5 @@ interface CategoryDao {
 
     @Transaction
     @Query("SELECT * FROM CategoryEntity")
-    fun getCategoryWithExpenses(): List<CategoryWithExpenses>
+    suspend fun getCategoryWithExpenses(): List<CategoryWithExpenses>
 }
