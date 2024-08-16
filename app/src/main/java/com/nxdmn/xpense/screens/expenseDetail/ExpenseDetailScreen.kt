@@ -135,7 +135,7 @@ fun ExpenseDetailScreen(
                 )
             }
 
-            var category by remember { mutableStateOf(expense.category) }
+            var category by remember(expense.category) { mutableStateOf(expense.category) }
             CategorySection(expenseDetailUiState.categoryList, category) {
                 category = it
                 expenseDetailViewModel.updateCategory(category)
