@@ -7,14 +7,15 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycle = "2.8.4"
 activityCompose = "1.9.1"
-composeBom = "2024.06.00"
+composeBom = "2024.08.00"
 livedata = "1.6.8"
 json = "1.6.3"
 serialization = "1.9.23"
-room = "2.7.0-alpha06"
+room = "2.7.0-alpha07"
 ksp = "1.9.23-1.0.20"
 coroutines = "1.8.0"
 nav = "2.7.7"
+vico = "2.0.0-alpha.28"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +39,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "nav" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
