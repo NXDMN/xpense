@@ -1,5 +1,8 @@
 package com.nxdmn.xpense.screens.expenseList
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,29 +15,42 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
+import com.nxdmn.xpense.helpers.toEpochMilli
+import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,17 +74,90 @@ fun ExpenseListScreen(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
-            Modifier
+        Column(
+            modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.background),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(expenseListUiState.expenseList, key = { expense -> expense.id }) {
-                ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
+            var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+
+            CalendarLabel(selectedDate = selectedDate, onDateSelected = { selectedDate = it })
+
+            LazyColumn(
+                contentPadding = PaddingValues(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(expenseListUiState.expenseList, key = { expense -> expense.id }) {
+                    ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
+                }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalendarLabel(selectedDate: LocalDate, onDateSelected: (LocalDate) -> Unit) {
+    val datePickerState =
+        rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochMilli())
+
+    var openDatePickerDialog by remember { mutableStateOf(false) }
+
+    if (openDatePickerDialog) {
+        DatePickerDialog(
+            onDismissRequest = { openDatePickerDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        onDateSelected(it.toLocalDate())
+                    }
+                    openDatePickerDialog = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { openDatePickerDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                title = null,
+                headline = null,
+                showModeToggle = false
+            )
+        }
+    }
+
+    val shape = RoundedCornerShape(20.dp)
+
+    Row(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = shape)
+            .clip(shape)
+            .clickable(
+                remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    openDatePickerDialog = true
+                }
+            )
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = selectedDate.toString(),
+            fontSize = 20.sp
+        )
+        Icon(
+            painter = painterResource(R.drawable.baseline_calendar_month_24),
+            contentDescription = "Calendar",
+        )
     }
 }
 
@@ -101,7 +190,7 @@ fun ExpenseCard(expense: ExpenseModel, onNavigateToDetail: (Long?) -> Unit = {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Preview(device = Devices.PIXEL_7_PRO, heightDp = 2000)
+@Preview(device = Devices.PIXEL_7_PRO)
 @Composable
 fun TestPreview() {
     Scaffold(
@@ -117,22 +206,28 @@ fun TestPreview() {
             )
         },
     ) { innerPadding ->
-        LazyColumn(
-            Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier.padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(listOf(
-                ExpenseModel(
-                    amount = 10.0,
-                    category = CategoryModel(name = "Food", icon = CategoryIcon.FASTFOOD)
-                )
-            ), key = { expense -> expense.id }) {
-                ExpenseCard(
-                    it
-                )
+            var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+
+            CalendarLabel(selectedDate = selectedDate, onDateSelected = { selectedDate = it })
+
+            LazyColumn(
+                contentPadding = PaddingValues(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(listOf(
+                    ExpenseModel(
+                        amount = 10.0,
+                        category = CategoryModel(name = "Food", icon = CategoryIcon.FASTFOOD)
+                    )
+                ), key = { expense -> expense.id }) {
+                    ExpenseCard(
+                        it
+                    )
+                }
             }
         }
     }
