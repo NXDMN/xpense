@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class ExpenseListUiState(
-    val expenseList: List<ExpenseModel> = emptyList()
+    val expenseList: List<ExpenseModel> = emptyList(),
+    val selectedDate: LocalDate = LocalDate.now()
 )
 
 class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewModel() {
@@ -24,11 +26,11 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
         }
     }
 
-    fun updateExpenseList(){
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(expenseList = repository.getAllExpenses())
-            }
+    fun updateSelectedDate(selectedDate: LocalDate) {
+        _uiState.update {
+            it.copy(
+                selectedDate = selectedDate
+            )
         }
     }
 }

@@ -81,9 +81,12 @@ fun ExpenseListScreen(
                 .background(color = MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
-            CalendarLabel(selectedDate = selectedDate, onDateSelected = { selectedDate = it })
+            CalendarLabel(
+                selectedDate = expenseListUiState.selectedDate,
+                onDateSelected = { expenseListViewModel.updateSelectedDate(it) },
+            )
+
 
             LazyColumn(
                 contentPadding = PaddingValues(10.dp),
