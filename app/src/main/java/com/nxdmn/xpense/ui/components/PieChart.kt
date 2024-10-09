@@ -1,6 +1,7 @@
 package com.nxdmn.xpense.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -27,7 +28,7 @@ fun PieChart(
     modifier: Modifier = Modifier,
     charts: List<ChartModel>,
     size: Dp = 200.dp,
-    strokeWidth: Dp = 16.dp,
+    strokeWidth: Dp = 20.dp,
     text: String = ""
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -39,15 +40,11 @@ fun PieChart(
             .size(size)
             .padding(12.dp)
     ) {
-        var startAngle = 0f
-        var sweepAngle: Float
-
-        charts.forEach {
-            sweepAngle = (it.value / 100) * 360
+        if (charts.isEmpty()) {
             drawArc(
-                color = it.color,
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
+                color = Color.LightGray,
+                startAngle = 0f,
+                sweepAngle = 360f,
                 useCenter = false,
                 style = Stroke(
                     width = strokeWidth.toPx(),
@@ -55,7 +52,25 @@ fun PieChart(
                     join = StrokeJoin.Round
                 )
             )
-            startAngle += sweepAngle
+        }else {
+            var startAngle = 0f
+            var sweepAngle: Float
+
+            charts.forEach {
+                sweepAngle = (it.value / 100) * 360
+                drawArc(
+                    color = it.color,
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    style = Stroke(
+                        width = strokeWidth.toPx(),
+                        cap = StrokeCap.Square,
+                        join = StrokeJoin.Round
+                    )
+                )
+                startAngle += sweepAngle
+            }
         }
 
         drawText(
@@ -77,5 +92,5 @@ fun PieChartPreview() {
         ChartModel(value = 40f, color = Color.Green),
         ChartModel(value = 10f, color = Color.Blue),
     )
-    PieChart(charts = charts, text = "Test")
+    PieChart(charts = emptyList(), text = "Test")
 }
