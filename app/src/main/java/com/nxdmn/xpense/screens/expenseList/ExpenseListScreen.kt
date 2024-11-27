@@ -50,6 +50,7 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.components.PieChart
 import java.time.LocalDate
 
 
@@ -77,22 +78,27 @@ fun ExpenseListScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(vertical = 20.dp)
                 .fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.background),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             CalendarLabel(
                 selectedDate = expenseListUiState.selectedDate,
                 onDateSelected = { expenseListViewModel.updateSelectedDate(it) },
             )
 
+            PieChart(
+                charts = emptyList(),
+                text = "$${expenseListUiState.dayExpenseAmount}"
+            )
 
             LazyColumn(
                 contentPadding = PaddingValues(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(expenseListUiState.expenseList, key = { expense -> expense.id }) {
+                items(expenseListUiState.dayExpenseList, key = { expense -> expense.id }) {
                     ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
                 }
             }
@@ -171,7 +177,7 @@ fun ExpenseCard(expense: ExpenseModel, onNavigateToDetail: (Long?) -> Unit = {})
             .fillMaxWidth()
             .wrapContentHeight(),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
+            defaultElevation = 2.dp
         ),
         onClick = {
             onNavigateToDetail(expense.id)

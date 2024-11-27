@@ -12,7 +12,13 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 data class ExpenseListUiState(
-    val expenseList: List<ExpenseModel> = emptyList(),
+    val totalExpenseList: List<ExpenseModel> = emptyList(),
+    val dayExpenseList: List<ExpenseModel> = emptyList(),
+    val dayExpenseAmount: Double = 0.0,
+    val monthExpenseList: List<ExpenseModel> = emptyList(),
+    val monthExpenseAmount: Double = 0.0,
+    val yearExpenseList: List<ExpenseModel> = emptyList(),
+    val yearExpenseAmount: Double = 0.0,
     val selectedDate: LocalDate = LocalDate.now()
 )
 
@@ -22,14 +28,38 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
 
     init {
         viewModelScope.launch {
-            _uiState.value = ExpenseListUiState(repository.getAllExpenses())
+            _uiState.value = ExpenseListUiState(totalExpenseList = repository.getAllExpenses())
+            _uiState.update {
+                it.copy(
+                    dayExpenseList = it.totalExpenseList.filter { e -> e.date == it.selectedDate },
+                    monthExpenseList = it.totalExpenseList.filter { e -> e.date.month == it.selectedDate.month },
+                    yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == it.selectedDate.year },
+                )
+            }
+            _uiState.update {
+                it.copy(
+                    dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
+                    monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
+                    yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
+                )
+            }
         }
     }
 
     fun updateSelectedDate(selectedDate: LocalDate) {
         _uiState.update {
             it.copy(
-                selectedDate = selectedDate
+                selectedDate = selectedDate,
+                dayExpenseList = it.totalExpenseList.filter { e -> e.date == selectedDate },
+                monthExpenseList = it.totalExpenseList.filter { e -> e.date.month == selectedDate.month },
+                yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == selectedDate.year },
+            )
+        }
+        _uiState.update {
+            it.copy(
+                dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
+                monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
+                yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
             )
         }
     }
