@@ -1,7 +1,6 @@
 package com.nxdmn.xpense.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -12,11 +11,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 data class ChartModel(
     val value: Float,
@@ -32,7 +33,10 @@ fun PieChart(
     text: String = ""
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val textLayoutResult = textMeasurer.measure(text = AnnotatedString(text))
+    val textLayoutResult = textMeasurer.measure(
+        text = AnnotatedString(text),
+        style = TextStyle.Default.copy(fontSize = 20.sp)
+    )
     val textSize = textLayoutResult.size
 
     Canvas(
@@ -52,7 +56,7 @@ fun PieChart(
                     join = StrokeJoin.Round
                 )
             )
-        }else {
+        } else {
             var startAngle = 0f
             var sweepAngle: Float
 
@@ -75,6 +79,7 @@ fun PieChart(
 
         drawText(
             textMeasurer, text,
+            style = TextStyle.Default.copy(fontSize = 20.sp),
             topLeft = Offset(
                 (this.size.width - textSize.width) / 2f,
                 (this.size.height - textSize.height) / 2f
