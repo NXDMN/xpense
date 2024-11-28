@@ -1,9 +1,11 @@
 package com.nxdmn.xpense.screens.expenseList
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
+import com.nxdmn.xpense.ui.components.ChartModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +21,8 @@ data class ExpenseListUiState(
     val monthExpenseAmount: Double = 0.0,
     val yearExpenseList: List<ExpenseModel> = emptyList(),
     val yearExpenseAmount: Double = 0.0,
-    val selectedDate: LocalDate = LocalDate.now()
+    val selectedDate: LocalDate = LocalDate.now(),
+    val charts: List<ChartModel> = emptyList()
 )
 
 class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewModel() {
@@ -41,6 +44,7 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                     dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
                     monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
                     yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
+                    charts = updateChart()
                 )
             }
         }
@@ -60,7 +64,19 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                 dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
                 monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
                 yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
+                charts = updateChart()
             )
         }
     }
+
+
+    private fun updateChart(): List<ChartModel> =
+        _uiState.value.dayExpenseList.groupingBy { it.category }
+            .fold(0.0) { acc, element -> acc + element.amount }
+            .map { entry ->
+                ChartModel(
+                    entry.value.toFloat(),
+                    Color(entry.key.color)
+                )
+            }
 }

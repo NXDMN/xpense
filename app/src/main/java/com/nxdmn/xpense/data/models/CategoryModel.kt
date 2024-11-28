@@ -14,6 +14,7 @@ data class CategoryModel(
     var name: String,
     @Serializable(with = CategoryIconSerializer::class)
     var icon: CategoryIcon,
+    var color: Long = 0,
     var count: Int = 0
 ) {
     private object CategoryIconSerializer : EnumSerializer<CategoryIcon>(
@@ -28,6 +29,7 @@ data class CategoryEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var name: String,
     var icon: CategoryIcon,
+    var color: Long = 0,
     var count: Int = 0
 )
 
@@ -35,6 +37,7 @@ fun CategoryModel.asEntity() = CategoryEntity(
     id = id,
     name = name,
     icon = icon,
+    color = color,
     count = count
 )
 
@@ -42,5 +45,6 @@ fun CategoryEntity.asModel() = CategoryModel(
     id = id,
     name = name,
     icon = icon,
+    color = color,
     count = count
 )
