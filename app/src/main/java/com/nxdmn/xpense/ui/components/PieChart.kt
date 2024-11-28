@@ -57,11 +57,12 @@ fun PieChart(
                 )
             )
         } else {
+            val total = charts.sumOf { it.value.toDouble() }.toFloat()
             var startAngle = 0f
             var sweepAngle: Float
 
             charts.forEach {
-                sweepAngle = (it.value / 100) * 360
+                sweepAngle = (it.value / total) * 360
                 drawArc(
                     color = it.color,
                     startAngle = startAngle,
@@ -93,9 +94,9 @@ fun PieChart(
 fun PieChartPreview() {
     val charts = listOf(
         ChartModel(value = 20f, color = Color.Red),
-        ChartModel(value = 30f, color = Color.Yellow),
-        ChartModel(value = 40f, color = Color.Green),
+        ChartModel(value = 10f, color = Color.Yellow),
+        ChartModel(value = 20f, color = Color.Green),
         ChartModel(value = 10f, color = Color.Blue),
     )
-    PieChart(charts = emptyList(), text = "Test")
+    PieChart(charts = charts, text = "Test")
 }
