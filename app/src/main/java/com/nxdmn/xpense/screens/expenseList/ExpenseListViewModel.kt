@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 data class ExpenseListUiState(
+    val viewMode: ViewMode = ViewMode.DAY,
     val totalExpenseList: List<ExpenseModel> = emptyList(),
     val dayExpenseList: List<ExpenseModel> = emptyList(),
     val dayExpenseAmount: Double = 0.0,
@@ -24,6 +25,12 @@ data class ExpenseListUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val charts: List<ChartModel> = emptyList()
 )
+
+enum class ViewMode(val title: String) {
+    DAY("Day"),
+    MONTH("Month"),
+    YEAR("Year")
+}
 
 class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(ExpenseListUiState())
@@ -44,9 +51,9 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                     dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
                     monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
                     yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
-                    charts = updateChart()
                 )
             }
+            updateChart()
         }
     }
 
@@ -64,14 +71,28 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                 dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
                 monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
                 yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
-                charts = updateChart()
             )
         }
+        updateChart()
+    }
+
+    fun updateViewMode(viewMode: ViewMode) {
+        _uiState.update {
+            it.copy(
+                viewMode = viewMode,
+            )
+        }
+        updateChart()
     }
 
 
-    private fun updateChart(): List<ChartModel> =
-        _uiState.value.dayExpenseList.groupingBy { it.category }
+    private fun updateChart() = _uiState.update {
+        it.copy(charts = when (it.viewMode) {
+            ViewMode.DAY -> it.dayExpenseList
+            ViewMode.MONTH -> it.monthExpenseList
+            ViewMode.YEAR -> it.yearExpenseList
+        }
+            .groupingBy { e -> e.category }
             .fold(0.0) { acc, element -> acc + element.amount }
             .map { entry ->
                 ChartModel(
@@ -79,4 +100,6 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                     Color(entry.key.color)
                 )
             }
+        )
+    }
 }

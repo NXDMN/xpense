@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +24,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -76,40 +77,68 @@ fun ExpenseListScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(vertical = 20.dp)
-                .fillMaxSize()
-                .background(color = MaterialTheme.colorScheme.background),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            CalendarLabel(
-                selectedDate = expenseListUiState.selectedDate,
-                onDateSelected = { expenseListViewModel.updateSelectedDate(it) },
-            )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            SecondaryTabRow(selectedTabIndex = expenseListUiState.viewMode.ordinal) {
+                ViewMode.entries.forEach { mode ->
+                    Tab(
+                        text = { Text(mode.title) },
+                        selected = mode == expenseListUiState.viewMode,
+                        onClick = {
+                            expenseListViewModel.updateViewMode(mode)
+                        },
+                    )
+                }
+            }
 
-            PieChart(
-                charts = expenseListUiState.charts,
-                text = "$${expenseListUiState.dayExpenseAmount}"
-            )
-
-            LazyColumn(
-                contentPadding = PaddingValues(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 20.dp)
+                    .fillMaxSize()
+                    .background(color = MaterialTheme.colorScheme.background),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(expenseListUiState.dayExpenseList, key = { expense -> expense.id }) {
-                    ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
+                CalendarLabel(
+                    viewMode = expenseListUiState.viewMode,
+                    selectedDate = expenseListUiState.selectedDate,
+                    onDateSelected = { expenseListViewModel.updateSelectedDate(it) },
+                )
+
+                PieChart(
+                    charts = expenseListUiState.charts,
+                    text = when (expenseListUiState.viewMode) {
+                        ViewMode.DAY -> "$${expenseListUiState.dayExpenseAmount}"
+                        ViewMode.MONTH -> "$${expenseListUiState.monthExpenseAmount}"
+                        ViewMode.YEAR -> "$${expenseListUiState.yearExpenseAmount}"
+                    }
+                )
+
+                LazyColumn(
+                    contentPadding = PaddingValues(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(when (expenseListUiState.viewMode) {
+                        ViewMode.DAY -> expenseListUiState.dayExpenseList
+                        ViewMode.MONTH -> expenseListUiState.monthExpenseList
+                        ViewMode.YEAR -> expenseListUiState.yearExpenseList
+                    }, key = { expense -> expense.id }) {
+                        ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
+                    }
                 }
             }
         }
+
+
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarLabel(selectedDate: LocalDate, onDateSelected: (LocalDate) -> Unit) {
+fun CalendarLabel(
+    viewMode: ViewMode,
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
     val datePickerState =
         rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochMilli())
 
@@ -200,7 +229,7 @@ fun ExpenseCard(expense: ExpenseModel, onNavigateToDetail: (Long?) -> Unit = {})
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(device = Devices.PIXEL_7_PRO)
 @Composable
 fun TestPreview() {
@@ -221,9 +250,18 @@ fun TestPreview() {
             modifier = Modifier.padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            SecondaryTabRow(selectedTabIndex = 0) {
+                Tab(text = { Text("Day") }, selected = true, onClick = { })
+                Tab(text = { Text("Month") }, selected = true, onClick = { })
+                Tab(text = { Text("Year") }, selected = true, onClick = { })
+            }
+
             var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
-            CalendarLabel(selectedDate = selectedDate, onDateSelected = { selectedDate = it })
+            CalendarLabel(
+                viewMode = ViewMode.DAY,
+                selectedDate = selectedDate,
+                onDateSelected = { selectedDate = it })
 
             LazyColumn(
                 contentPadding = PaddingValues(10.dp),
