@@ -53,8 +53,9 @@ import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.PieChart
+import com.nxdmn.xpense.ui.components.YearPicker
 import java.time.LocalDate
-
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,12 +164,17 @@ fun CalendarLabel(
                 }
             }
         ) {
-            DatePicker(
-                state = datePickerState,
-                title = null,
-                headline = null,
-                showModeToggle = false
-            )
+            when (viewMode) {
+                ViewMode.DAY -> DatePicker(
+                    state = datePickerState,
+                    title = null,
+                    headline = null,
+                    showModeToggle = false
+                )
+
+                ViewMode.MONTH -> YearPicker(state = datePickerState)
+                ViewMode.YEAR -> YearPicker(state = datePickerState)
+            }
         }
     }
 
@@ -190,7 +196,11 @@ fun CalendarLabel(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = selectedDate.toString(),
+            text = when (viewMode) {
+                ViewMode.DAY -> selectedDate.toString()
+                ViewMode.MONTH -> selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+                ViewMode.YEAR -> selectedDate.year.toString()
+            },
             fontSize = 20.sp
         )
         Icon(
