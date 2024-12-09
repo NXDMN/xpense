@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import java.time.LocalDate
@@ -62,6 +63,12 @@ fun YearPicker(state: DatePickerState) {
                 colors.containerColor
             }
 
+        Text(
+            text = "Year",
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 16.dp),
+            fontSize = 16.sp
+        )
+        HorizontalDivider(color = colors.dividerColor)
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier
