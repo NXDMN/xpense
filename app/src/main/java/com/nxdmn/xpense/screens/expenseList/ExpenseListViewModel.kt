@@ -42,7 +42,7 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
             _uiState.update {
                 it.copy(
                     dayExpenseList = it.totalExpenseList.filter { e -> e.date == it.selectedDate },
-                    monthExpenseList = it.totalExpenseList.filter { e -> e.date.month == it.selectedDate.month },
+                    monthExpenseList = it.totalExpenseList.filter { e -> e.date.year == it.selectedDate.year && e.date.month == it.selectedDate.month },
                     yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == it.selectedDate.year },
                 )
             }
@@ -62,7 +62,7 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
             it.copy(
                 selectedDate = selectedDate,
                 dayExpenseList = it.totalExpenseList.filter { e -> e.date == selectedDate },
-                monthExpenseList = it.totalExpenseList.filter { e -> e.date.month == selectedDate.month },
+                monthExpenseList = it.totalExpenseList.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month },
                 yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == selectedDate.year },
             )
         }

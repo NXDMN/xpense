@@ -52,6 +52,7 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.components.MonthPicker
 import com.nxdmn.xpense.ui.components.PieChart
 import com.nxdmn.xpense.ui.components.YearPicker
 import java.time.LocalDate
@@ -172,7 +173,7 @@ fun CalendarLabel(
                     showModeToggle = false
                 )
 
-                ViewMode.MONTH -> YearPicker(state = datePickerState)
+                ViewMode.MONTH -> MonthPicker(state = datePickerState)
                 ViewMode.YEAR -> YearPicker(state = datePickerState)
             }
         }

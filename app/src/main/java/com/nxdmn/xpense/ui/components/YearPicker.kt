@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DatePickerColors
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DividerDefaults
@@ -42,110 +43,115 @@ import kotlin.math.max
 @Composable
 fun YearPicker(state: DatePickerState) {
     val colors = DatePickerDefaults.colors()
-    val displayedYear = state.displayedMonthMillis.toLocalDate().year
-
     Column {
-        val lazyGridState =
-            rememberLazyGridState(
-                // Set the initial index to a few years before the current year to allow quicker
-                // selection of previous years.
-                initialFirstVisibleItemIndex = max(
-                    0,
-                    displayedYear - DatePickerDefaults.YearRange.first - 3
-                )
-            )
-
-        val tonalElevationEnabled = LocalTonalElevationEnabled.current
-        val containerColor =
-            if (colors.containerColor == MaterialTheme.colorScheme.surface && tonalElevationEnabled) {
-                MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
-            } else {
-                colors.containerColor
-            }
-
         Text(
             text = "Year",
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 16.dp),
             fontSize = 16.sp
         )
         HorizontalDivider(color = colors.dividerColor)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier
-                .requiredHeight(
-                    48.dp * (6 + 1) - DividerDefaults.Thickness
-                )
-                .padding(horizontal = 12.dp)
-                .background(color = containerColor),
-            state = lazyGridState,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(DatePickerDefaults.YearRange.count()) {
-                val selectedYear = it + DatePickerDefaults.YearRange.first
-                val selected = selectedYear == displayedYear
-                val currentYear = selectedYear == LocalDate.now().year
+        YearPickerContent(state, colors = colors)
+        HorizontalDivider(color = colors.dividerColor)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun YearPickerContent(state: DatePickerState, colors: DatePickerColors) {
+    val displayedYear = state.displayedMonthMillis.toLocalDate().year
+
+    val lazyGridState =
+        rememberLazyGridState(
+            // Set the initial index to a few years before the current year to allow quicker
+            // selection of previous years.
+            initialFirstVisibleItemIndex = max(
+                0,
+                displayedYear - DatePickerDefaults.YearRange.first - 3
+            )
+        )
+
+    val tonalElevationEnabled = LocalTonalElevationEnabled.current
+    val containerColor =
+        if (colors.containerColor == MaterialTheme.colorScheme.surface && tonalElevationEnabled) {
+            MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
+        } else {
+            colors.containerColor
+        }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier
+            .requiredHeight(
+                48.dp * 5 - DividerDefaults.Thickness
+            )
+            .padding(horizontal = 12.dp)
+            .background(color = containerColor),
+        state = lazyGridState,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(DatePickerDefaults.YearRange.count()) {
+            val selectedYear = it + DatePickerDefaults.YearRange.first
+            val selected = selectedYear == displayedYear
+            val currentYear = selectedYear == LocalDate.now().year
 
 
-                val colorTarget = if (selected) {
-                    colors.selectedYearContainerColor
+            val colorTarget = if (selected) {
+                colors.selectedYearContainerColor
+            } else {
+                Color.Transparent
+            }
+
+            val contentColorTarget = when {
+                selected -> colors.selectedYearContentColor
+                currentYear -> colors.currentYearContentColor
+                else -> colors.yearContentColor
+            }
+
+            val border = remember(currentYear, selected) {
+                if (currentYear && !selected) {
+                    // Use the day's spec to draw a border around the current year.
+                    BorderStroke(
+                        1.0.dp,
+                        colors.todayDateBorderColor
+                    )
                 } else {
-                    Color.Transparent
+                    null
                 }
+            }
 
-                val contentColorTarget = when {
-                    selected -> colors.selectedYearContentColor
-                    currentYear -> colors.currentYearContentColor
-                    else -> colors.yearContentColor
-                }
-
-                val border = remember(currentYear, selected) {
-                    if (currentYear && !selected) {
-                        // Use the day's spec to draw a border around the current year.
-                        BorderStroke(
-                            1.0.dp,
-                            colors.todayDateBorderColor
-                        )
-                    } else {
-                        null
-                    }
-                }
-
-                Surface(
-                    selected = selected,
-                    onClick = {
-                        state.selectedDateMillis =
-                            state.selectedDateMillis?.toLocalDate()?.withYear(selectedYear)
-                                ?.toEpochMilli()
-                        state.displayedMonthMillis =
-                            state.displayedMonthMillis.toLocalDate().withYear(selectedYear)
-                                .toEpochMilli()
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .requiredSize(
-                            width = 72.dp,
-                            height = 36.dp,
-                        ),
-                    color = animateColorAsState(
-                        colorTarget,
-                        tween(durationMillis = 100),
-                        label = "YearPickerColor",
-                    ).value,
-                    contentColor = animateColorAsState(
-                        contentColorTarget,
-                        tween(durationMillis = 100),
-                        label = "YearPickerContentColor",
-                    ).value,
-                    shape = RoundedCornerShape(6.dp),
-                    border = border,
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(text = selectedYear.toString())
-                    }
+            Surface(
+                selected = selected,
+                onClick = {
+                    state.selectedDateMillis =
+                        state.selectedDateMillis?.toLocalDate()?.withYear(selectedYear)
+                            ?.toEpochMilli()
+                    state.displayedMonthMillis =
+                        state.displayedMonthMillis.toLocalDate().withYear(selectedYear)
+                            .toEpochMilli()
+                },
+                modifier = Modifier
+                    .requiredSize(
+                        width = 72.dp,
+                        height = 36.dp,
+                    ),
+                color = animateColorAsState(
+                    colorTarget,
+                    tween(durationMillis = 100),
+                    label = "YearPickerColor",
+                ).value,
+                contentColor = animateColorAsState(
+                    contentColorTarget,
+                    tween(durationMillis = 100),
+                    label = "YearPickerContentColor",
+                ).value,
+                shape = RoundedCornerShape(6.dp),
+                border = border,
+            ) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(text = selectedYear.toString())
                 }
             }
         }
-        HorizontalDivider(color = colors.dividerColor)
     }
 }
