@@ -52,7 +52,6 @@ fun XpenseNavHost(
             appBarState,
             expenseRepository,
             categoryRepository,
-            onNavigateToExpenseList = { navController.navigateToExpenseList() },
             onNavigateBack = { navController.popBackStack() }
         )
         settingScreen()
@@ -94,7 +93,6 @@ fun NavGraphBuilder.expenseDetailScreen(
     appBarState: AppBarState,
     expenseRepository: ExpenseRepository,
     categoryRepository: CategoryRepository,
-    onNavigateToExpenseList: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     composable(
@@ -108,7 +106,6 @@ fun NavGraphBuilder.expenseDetailScreen(
         ExpenseDetailScreen(
             appBarState,
             vm,
-            onNavigateToExpenseList,
             onNavigateBack
         )
     }

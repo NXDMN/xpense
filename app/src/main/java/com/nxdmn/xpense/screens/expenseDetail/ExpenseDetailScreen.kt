@@ -68,7 +68,6 @@ import com.nxdmn.xpense.ui.components.CurrencyTextField
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(),
-    onNavigateToList: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
@@ -192,7 +191,7 @@ fun ExpenseDetailScreen(
             appBarState.saveExpenseDetail = {
                 if (expense.amount > 0.0) {
                     expenseDetailViewModel.saveExpense()
-                    onNavigateToList()
+                    onNavigateBack()
                 } else
                     Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
             }
