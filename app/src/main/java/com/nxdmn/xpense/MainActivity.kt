@@ -74,7 +74,6 @@ private fun XpenseApp(context: Context) {
             bottomBar = {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary,
                     actions = {
                         IconButton(onClick = { navController.navigateToExpenseList() }) {
                             Icon(ExpenseList.icon, contentDescription = "Expense List")
@@ -86,8 +85,7 @@ private fun XpenseApp(context: Context) {
                     floatingActionButton = {
                         if (appBarState.currentScreen == ExpenseDetail) {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.inversePrimary,
+                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 onClick = {
                                     appBarState.saveExpenseDetail?.let { it() }
                                 }
@@ -99,8 +97,7 @@ private fun XpenseApp(context: Context) {
                             }
                         } else {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.inversePrimary,
+                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 onClick = {
                                     navController.navigateToExpenseDetail()
                                 }

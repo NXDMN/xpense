@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -60,8 +61,15 @@ fun CategoryLabel(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painterResource(icon.resId), contentDescription = text)
-        Text(text = text)
+        Icon(
+            painterResource(icon.resId),
+            contentDescription = text,
+            tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
+        )
+        Text(
+            text = text,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
+        )
     }
 }
 

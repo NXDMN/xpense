@@ -71,7 +71,7 @@ fun ExpenseListScreen(
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
                 title = {
                     Text("Expenses")
@@ -183,7 +183,7 @@ fun CalendarLabel(
 
     Row(
         modifier = Modifier
-            .background(color = MaterialTheme.colorScheme.secondaryContainer, shape = shape)
+            .background(color = MaterialTheme.colorScheme.surfaceContainer, shape = shape)
             .clip(shape)
             .clickable(
                 remember { MutableInteractionSource() },
