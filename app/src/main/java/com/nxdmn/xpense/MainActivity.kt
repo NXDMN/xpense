@@ -4,7 +4,9 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             XpenseApp(applicationContext)
@@ -70,6 +73,7 @@ private fun XpenseApp(context: Context) {
         )
 
         Scaffold(
+            modifier = Modifier.imePadding(),
             contentWindowInsets = WindowInsets(0.dp),
             bottomBar = {
                 BottomAppBar(
