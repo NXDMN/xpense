@@ -2,12 +2,15 @@ package com.nxdmn.xpense.data.repositories
 
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.dataSources.ExpenseDataSource
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class ExpenseRepository(
     private val expenseLocalDataSource: ExpenseDataSource, // Local data source
 ) {
+    val expenseListFlow: Flow<List<ExpenseModel>> = expenseLocalDataSource.getAllAsFlow()
+
     // Mutex to make writes to cached values thread-safe.
     private val getAllExpensesMutex = Mutex()
 
@@ -26,7 +29,7 @@ class ExpenseRepository(
         return getAllExpensesMutex.withLock { this.expenseList }
     }
 
-    fun getExpense(id: Long): ExpenseModel?{
+    fun getExpense(id: Long): ExpenseModel? {
         return expenseList.find { it.id == id }
     }
 

@@ -7,10 +7,11 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.ui.components.ChartModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 data class ExpenseListUiState(
@@ -33,65 +34,54 @@ enum class ViewMode(val title: String) {
 }
 
 class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewModel() {
-    private val _uiState = MutableStateFlow(ExpenseListUiState())
-    val uiState: StateFlow<ExpenseListUiState> = _uiState.asStateFlow()
+    private val _viewMode = MutableStateFlow(ViewMode.DAY)
+    private val _selectedDate = MutableStateFlow(LocalDate.now())
 
-    init {
-        viewModelScope.launch {
-            _uiState.value = ExpenseListUiState(totalExpenseList = repository.getAllExpenses())
-            _uiState.update {
-                it.copy(
-                    dayExpenseList = it.totalExpenseList.filter { e -> e.date == it.selectedDate },
-                    monthExpenseList = it.totalExpenseList.filter { e -> e.date.year == it.selectedDate.year && e.date.month == it.selectedDate.month },
-                    yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == it.selectedDate.year },
+    val uiState: StateFlow<ExpenseListUiState> =
+        combine(
+            repository.expenseListFlow,
+            _viewMode,
+            _selectedDate
+        ) { expenses, viewMode, selectedDate ->
+            val dayExpenseList = expenses.filter { e -> e.date == selectedDate }
+            val monthExpenseList =
+                expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
+            val yearExpenseList = expenses.filter { e -> e.date.year == selectedDate.year }
+
+            ExpenseListUiState(
+                viewMode = viewMode,
+                totalExpenseList = expenses,
+                dayExpenseList = dayExpenseList,
+                dayExpenseAmount = dayExpenseList.sumOf { e -> e.amount },
+                monthExpenseList = monthExpenseList,
+                monthExpenseAmount = monthExpenseList.sumOf { e -> e.amount },
+                yearExpenseList = yearExpenseList,
+                yearExpenseAmount = yearExpenseList.sumOf { e -> e.amount },
+                selectedDate = selectedDate,
+                charts = updateChart(
+                    when (_viewMode.value) {
+                        ViewMode.DAY -> dayExpenseList
+                        ViewMode.MONTH -> monthExpenseList
+                        ViewMode.YEAR -> yearExpenseList
+                    }
                 )
-            }
-            _uiState.update {
-                it.copy(
-                    dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
-                    monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
-                    yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
-                )
-            }
-            updateChart()
-        }
-    }
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ExpenseListUiState()
+        )
 
     fun updateSelectedDate(selectedDate: LocalDate) {
-        _uiState.update {
-            it.copy(
-                selectedDate = selectedDate,
-                dayExpenseList = it.totalExpenseList.filter { e -> e.date == selectedDate },
-                monthExpenseList = it.totalExpenseList.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month },
-                yearExpenseList = it.totalExpenseList.filter { e -> e.date.year == selectedDate.year },
-            )
-        }
-        _uiState.update {
-            it.copy(
-                dayExpenseAmount = it.dayExpenseList.sumOf { e -> e.amount },
-                monthExpenseAmount = it.monthExpenseList.sumOf { e -> e.amount },
-                yearExpenseAmount = it.yearExpenseList.sumOf { e -> e.amount },
-            )
-        }
-        updateChart()
+        _selectedDate.update { selectedDate }
     }
 
     fun updateViewMode(viewMode: ViewMode) {
-        _uiState.update {
-            it.copy(
-                viewMode = viewMode,
-            )
-        }
-        updateChart()
+        _viewMode.update { viewMode }
     }
 
-
-    private fun updateChart() = _uiState.update {
-        it.copy(charts = when (it.viewMode) {
-            ViewMode.DAY -> it.dayExpenseList
-            ViewMode.MONTH -> it.monthExpenseList
-            ViewMode.YEAR -> it.yearExpenseList
-        }
+    private fun updateChart(expenseList: List<ExpenseModel>): List<ChartModel> =
+        expenseList
             .groupingBy { e -> e.category }
             .fold(0.0) { acc, element -> acc + element.amount }
             .map { entry ->

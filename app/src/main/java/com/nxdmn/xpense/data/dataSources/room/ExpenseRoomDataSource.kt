@@ -1,12 +1,16 @@
 package com.nxdmn.xpense.data.dataSources.room
 
-import android.content.Context
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.dataSources.ExpenseDataSource
 import com.nxdmn.xpense.data.models.asEntity
 import com.nxdmn.xpense.data.relations.asModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class ExpenseRoomDataSource(private val dao: ExpenseDao) : ExpenseDataSource {
+    override fun getAllAsFlow(): Flow<List<ExpenseModel>> {
+        return dao.getExpenseWithCategoryAsFlow().map { list -> list.map { it.asModel() } }
+    }
 
     override suspend fun findAll(): List<ExpenseModel> {
         return dao.getExpenseWithCategory().map { it.asModel() }

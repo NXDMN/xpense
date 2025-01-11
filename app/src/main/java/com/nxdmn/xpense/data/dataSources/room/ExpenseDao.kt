@@ -3,6 +3,7 @@ package com.nxdmn.xpense.data.dataSources.room
 import androidx.room.*
 import com.nxdmn.xpense.data.models.ExpenseEntity
 import com.nxdmn.xpense.data.relations.ExpenseWithCategory
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
@@ -24,4 +25,8 @@ interface ExpenseDao {
     @Transaction
     @Query("SELECT * FROM ExpenseEntity")
     suspend fun getExpenseWithCategory(): List<ExpenseWithCategory>
+
+    @Transaction
+    @Query("SELECT * FROM ExpenseEntity")
+    fun getExpenseWithCategoryAsFlow(): Flow<List<ExpenseWithCategory>>
 }
