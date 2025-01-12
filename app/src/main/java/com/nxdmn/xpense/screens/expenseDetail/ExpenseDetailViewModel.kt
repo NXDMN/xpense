@@ -121,4 +121,22 @@ class ExpenseDetailViewModel(
             )
         }
     }
+
+    companion object {
+        val EXPENSE_REPOSITORY_KEY = object : CreationExtras.Key<ExpenseRepository> {}
+        val CATEGORY_REPOSITORY_KEY = object : CreationExtras.Key<CategoryRepository> {}
+        val EXPENSE_ID_KEY = object : CreationExtras.Key<Long?> {}
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val expenseRepo = this[EXPENSE_REPOSITORY_KEY] as ExpenseRepository
+                val categoryRepo = this[CATEGORY_REPOSITORY_KEY] as CategoryRepository
+                val expenseId = this[EXPENSE_ID_KEY] as Long?
+                ExpenseDetailViewModel(
+                    expenseRepository = expenseRepo,
+                    categoryRepository = categoryRepo,
+                    expenseId = expenseId,
+                )
+            }
+        }
+    }
 }

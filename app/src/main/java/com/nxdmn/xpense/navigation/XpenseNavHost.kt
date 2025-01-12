@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
@@ -82,8 +83,15 @@ fun NavGraphBuilder.expenseListScreen(
     onNavigateToExpenseDetail: (Long?) -> Unit
 ) {
     composable(route = ExpenseList.route) {
+        val extras = MutableCreationExtras().apply {
+            set(ExpenseListViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
+        }
+        val vm: ExpenseListViewModel = viewModel(
+            factory = ExpenseListViewModel.Factory,
+            extras = extras
+        )
         ExpenseListScreen(
-            ExpenseListViewModel(expenseRepository),
+            vm,
             onNavigateToExpenseDetail
         )
     }
@@ -100,9 +108,15 @@ fun NavGraphBuilder.expenseDetailScreen(
         arguments = ExpenseDetail.arguments
     ) { navBackStackEntry ->
         val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
-        val vm = viewModel {
-            ExpenseDetailViewModel(expenseRepository, categoryRepository, expenseId?.toLong())
+        val extras = MutableCreationExtras().apply {
+            set(ExpenseDetailViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
+            set(ExpenseDetailViewModel.CATEGORY_REPOSITORY_KEY, categoryRepository)
+            set(ExpenseDetailViewModel.EXPENSE_ID_KEY, expenseId?.toLong())
         }
+        val vm: ExpenseDetailViewModel = viewModel(
+            factory = ExpenseDetailViewModel.Factory,
+            extras = extras
+        )
         ExpenseDetailScreen(
             appBarState,
             vm,

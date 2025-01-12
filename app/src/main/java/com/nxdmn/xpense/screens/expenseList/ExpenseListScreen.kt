@@ -61,7 +61,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseListScreen(
-    expenseListViewModel: ExpenseListViewModel = viewModel(),
+    expenseListViewModel: ExpenseListViewModel = viewModel(factory = ExpenseListViewModel.Factory),
     onNavigateToDetail: (Long?) -> Unit = {},
 ) {
     val expenseListUiState by expenseListViewModel.uiState.collectAsState()

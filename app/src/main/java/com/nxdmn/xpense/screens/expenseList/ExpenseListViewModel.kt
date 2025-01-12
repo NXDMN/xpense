@@ -2,7 +2,11 @@ package com.nxdmn.xpense.screens.expenseList
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.ui.components.ChartModel
@@ -90,6 +94,14 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
                     Color(entry.key.color)
                 )
             }
-        )
+
+    companion object {
+        val EXPENSE_REPOSITORY_KEY = object : CreationExtras.Key<ExpenseRepository> {}
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val repo = this[EXPENSE_REPOSITORY_KEY] as ExpenseRepository
+                ExpenseListViewModel(repo)
+            }
+        }
     }
 }

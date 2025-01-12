@@ -64,7 +64,7 @@ import com.nxdmn.xpense.ui.components.CurrencyTextField
 @Composable
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
-    expenseDetailViewModel: ExpenseDetailViewModel = viewModel(),
+    expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory),
     onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
