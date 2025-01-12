@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface ExpenseDataSource {
     fun getAllAsFlow(): Flow<List<ExpenseModel>>
     suspend fun findAll(): List<ExpenseModel>
+    suspend fun find(id: Long): ExpenseModel?
     suspend fun create(expense: ExpenseModel)
     suspend fun update(expense: ExpenseModel)
     suspend fun delete(expense: ExpenseModel)

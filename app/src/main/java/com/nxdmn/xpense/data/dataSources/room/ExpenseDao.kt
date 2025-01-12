@@ -16,6 +16,10 @@ interface ExpenseDao {
     @Query("SELECT * FROM ExpenseEntity WHERE id = :id")
     suspend fun findById(id: Long): ExpenseEntity
 
+    @Transaction
+    @Query("SELECT * FROM ExpenseEntity WHERE id = :id")
+    suspend fun getExpenseWithCategoryById(id: Long): ExpenseWithCategory?
+
     @Update
     suspend fun update(expense: ExpenseEntity)
 

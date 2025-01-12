@@ -1,22 +1,25 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 data class ExpenseDetailUiState(
+    val isBusy: Boolean = true,
     val expense: ExpenseModel,
     val categoryList: List<CategoryModel> = emptyList(),
     val isEdit: Boolean = false,
@@ -31,7 +34,7 @@ class ExpenseDetailViewModel(
 
     private val _uiState = MutableStateFlow(
         ExpenseDetailUiState(
-            ExpenseModel(
+            expense = ExpenseModel(
                 amount = 0.0,
                 category = CategoryModel(id = 3, name = "", icon = CategoryIcon.OTHERS)
             )
@@ -52,6 +55,8 @@ class ExpenseDetailViewModel(
                 _uiState.update { it.copy(expense = expense, isEdit = true) }
             else
                 _uiState.update { it.copy(expense = it.expense.copy(category = it.categoryList.first())) }
+
+            _uiState.update { it.copy(isBusy = false) }
         }
     }
 

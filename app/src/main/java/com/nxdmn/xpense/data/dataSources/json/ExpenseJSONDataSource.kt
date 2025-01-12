@@ -6,6 +6,8 @@ import com.nxdmn.xpense.helpers.read
 import com.nxdmn.xpense.helpers.write
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.dataSources.ExpenseDataSource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Random
@@ -21,7 +23,14 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
         }
     }
 
+    override fun getAllAsFlow(): Flow<List<ExpenseModel>> = flow {
+        while (true)
+            emit(_expenses)
+    }
+
     override suspend fun findAll(): List<ExpenseModel> = _expenses
+
+    override suspend fun find(id: Long): ExpenseModel? = _expenses.find { it.id == id }
 
     override suspend fun create(expense: ExpenseModel) {
         expense.id = Random().nextLong()
@@ -45,12 +54,12 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
         serialize()
     }
 
-    private fun serialize(){
+    private fun serialize() {
         val jsonString = Json.encodeToString(_expenses)
         write(context, EXPENSES_JSON_FILE, jsonString)
     }
 
-    private fun deserialize(){
+    private fun deserialize() {
         val jsonString = read(context, EXPENSES_JSON_FILE)
         _expenses = Json.decodeFromString(jsonString)
     }

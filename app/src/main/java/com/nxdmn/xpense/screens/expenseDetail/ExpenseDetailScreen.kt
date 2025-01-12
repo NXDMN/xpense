@@ -1,6 +1,5 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,22 +10,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,13 +56,11 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
-import com.nxdmn.xpense.helpers.toLocalDate
-import com.nxdmn.xpense.screens.expenseList.ExpenseCard
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
@@ -97,106 +94,117 @@ fun ExpenseDetailScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            var amount by remember { mutableStateOf(if (expense.amount == 0.0) "" else expense.amount.toString()) }
-            CurrencyTextField(
-                amount = amount,
-                onValueChanged = {
-                    amount = if (it.isEmpty()) {
-                        it.trim()
-                    } else {
-                        when (it.toDoubleOrNull()) {
-                            null -> amount
-                            else -> it.trim()
+        if (expenseDetailUiState.isBusy) {
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                var amount by remember { mutableStateOf(if (expense.amount == 0.0) "" else expense.amount.toString()) }
+                CurrencyTextField(
+                    amount = amount,
+                    onValueChanged = {
+                        amount = if (it.isEmpty()) {
+                            it.trim()
+                        } else {
+                            when (it.toDoubleOrNull()) {
+                                null -> amount
+                                else -> it.trim()
+                            }
+                        }
+                        expenseDetailViewModel.updateAmount(amount)
+                    },
+                )
+
+                val datePickerState =
+                    rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
+                datePickerState.selectedDateMillis?.let {
+                    expenseDetailViewModel.updateDate(it)
+                }
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.padding(bottom = 20.dp),
+                    shape = RoundedCornerShape(20.dp),
+                ) {
+                    DatePicker(
+                        state = datePickerState,
+                        title = null,
+                        headline = null,
+                        showModeToggle = false
+                    )
+                }
+
+                var category by remember(expense.category) { mutableStateOf(expense.category) }
+                CategorySection(expenseDetailUiState.categoryList, category) {
+                    category = it
+                    expenseDetailViewModel.updateCategory(category)
+                }
+
+                var remarks by remember { mutableStateOf(expense.remarks) }
+                TextField(
+                    value = remarks,
+                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = {
+                        remarks = it
+                        expenseDetailViewModel.updateRemarks(remarks)
+                    },
+                    label = { Text("Remarks") }
+                )
+
+                val context = LocalContext.current
+                var imageBitmap by remember {
+                    mutableStateOf(
+                        readImageFromPath(
+                            context,
+                            expense.image
+                        )
+                    )
+                }
+                imageBitmap?.let {
+                    it.prepareToDraw()
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(300.dp)
+                    )
+                }
+
+                val imagePicker =
+                    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                        if (uri != null) {
+                            expenseDetailViewModel.updateImage(uri.toString())
+                            imageBitmap =
+                                readImage(context.contentResolver, uri)
                         }
                     }
-                    expenseDetailViewModel.updateAmount(amount)
-                },
-            )
-
-            val datePickerState =
-                rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
-            datePickerState.selectedDateMillis?.let {
-                expenseDetailViewModel.updateDate(it)
-            }
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.padding(bottom = 20.dp),
-                shape = RoundedCornerShape(20.dp),
-            ) {
-                DatePicker(
-                    state = datePickerState,
-                    title = null,
-                    headline = null,
-                    showModeToggle = false
-                )
-            }
-
-            var category by remember(expense.category) { mutableStateOf(expense.category) }
-            CategorySection(expenseDetailUiState.categoryList, category) {
-                category = it
-                expenseDetailViewModel.updateCategory(category)
-            }
-
-            var remarks by remember { mutableStateOf(expense.remarks) }
-            TextField(
-                value = remarks,
-                modifier = Modifier.fillMaxWidth(),
-                onValueChange = {
-                    remarks = it
-                    expenseDetailViewModel.updateRemarks(remarks)
-                },
-                label = { Text("Remarks") }
-            )
-
-            val context = LocalContext.current
-            var imageBitmap by remember {
-                mutableStateOf(
-                    readImageFromPath(
-                        context,
-                        expense.image
-                    )
-                )
-            }
-            imageBitmap?.let {
-                it.prepareToDraw()
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp)
-                )
-            }
-
-            val imagePicker =
-                rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-                    if (uri != null) {
-                        expenseDetailViewModel.updateImage(uri.toString())
-                        imageBitmap =
-                            readImage(context.contentResolver, uri)
-                    }
+                Button(onClick = {
+                    imagePicker.launch("image/*")
+                }) {
+                    Text("Add Image")
                 }
-            Button(onClick = {
-                imagePicker.launch("image/*")
-            }) {
-                Text("Add Image")
-            }
 
-            appBarState.saveExpenseDetail = {
-                if (expense.amount > 0.0) {
-                    expenseDetailViewModel.saveExpense()
-                    onNavigateBack()
-                } else
-                    Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
-            }
+                appBarState.saveExpenseDetail = {
+                    if (expense.amount > 0.0) {
+                        expenseDetailViewModel.saveExpense()
+                        onNavigateBack()
+                    } else
+                        Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
+                }
 
-            Spacer(modifier = Modifier.padding(bottom = 30.dp))
+                Spacer(modifier = Modifier.padding(bottom = 30.dp))
+            }
         }
     }
 }

@@ -29,8 +29,9 @@ class ExpenseRepository(
         return getAllExpensesMutex.withLock { this.expenseList }
     }
 
-    fun getExpense(id: Long): ExpenseModel? {
-        return expenseList.find { it.id == id }
+    suspend fun getExpense(id: Long): ExpenseModel? {
+        return if (expenseList.isNotEmpty()) expenseList.find { it.id == id }
+        else expenseLocalDataSource.find(id)
     }
 
     suspend fun updateExpense(expense: ExpenseModel) = expenseLocalDataSource.update(expense)

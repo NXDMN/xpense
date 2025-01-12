@@ -16,6 +16,10 @@ class ExpenseRoomDataSource(private val dao: ExpenseDao) : ExpenseDataSource {
         return dao.getExpenseWithCategory().map { it.asModel() }
     }
 
+    override suspend fun find(id: Long): ExpenseModel? {
+        return dao.getExpenseWithCategoryById(id)?.asModel()
+    }
+
     override suspend fun create(expense: ExpenseModel) {
         dao.create(expense.asEntity())
     }
