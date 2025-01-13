@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -33,14 +36,12 @@ import com.nxdmn.xpense.data.dataSources.room.CategoryRoomDataSource
 import com.nxdmn.xpense.data.dataSources.room.ExpenseRoomDataSource
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
-import com.nxdmn.xpense.navigation.ExpenseDetail
-import com.nxdmn.xpense.navigation.ExpenseList
-import com.nxdmn.xpense.navigation.Setting
+import com.nxdmn.xpense.navigation.Route
 import com.nxdmn.xpense.navigation.XpenseNavHost
-import com.nxdmn.xpense.navigation.bottomNavigationScreens
 import com.nxdmn.xpense.navigation.navigateToExpenseDetail
 import com.nxdmn.xpense.navigation.navigateToExpenseList
 import com.nxdmn.xpense.navigation.navigateToSetting
+import com.nxdmn.xpense.navigation.routes
 import com.nxdmn.xpense.ui.theme.XpenseTheme
 
 class MainActivity : ComponentActivity() {
@@ -79,15 +80,24 @@ private fun XpenseApp(context: Context) {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     actions = {
-                        IconButton(onClick = { navController.navigateToExpenseList() }) {
-                            Icon(ExpenseList.icon, contentDescription = "Expense List")
+                        IconButton(
+                            enabled = appBarState.currentScreen != Route.ExpenseList,
+                            onClick = { navController.navigateToExpenseList() }
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Expense List"
+                            )
                         }
-                        IconButton(onClick = { navController.navigateToSetting() }) {
-                            Icon(Setting.icon, contentDescription = "Setting")
+                        IconButton(
+                            enabled = appBarState.currentScreen != Route.Settings,
+                            onClick = { navController.navigateToSetting() }
+                        ) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
                         }
                     },
                     floatingActionButton = {
-                        if (appBarState.currentScreen == ExpenseDetail) {
+                        if (appBarState.currentScreen == Route.ExpenseDetail) {
                             FloatingActionButton(
                                 containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 onClick = {
@@ -127,13 +137,17 @@ private fun XpenseApp(context: Context) {
 
 @Stable
 class AppBarState(private val navController: NavHostController) {
-
-    val currentDestination: NavDestination?
+    private val currentDestination: NavDestination?
         @Composable get() = navController.currentBackStackEntryAsState().value?.destination
 
     val currentScreen
-        @Composable get() = bottomNavigationScreens.find { it.route == currentDestination?.route }
-            ?: ExpenseList
+        @Composable get() = routes.find { route ->
+            currentDestination?.hierarchy?.any {
+                val s = route.toString().substringBefore("@").substringBefore("$")
+                it.route?.contains(s) == true
+            } == true
+        }
+            ?: Route.ExpenseList
 
     var saveExpenseDetail: (() -> Unit)? = null
 }

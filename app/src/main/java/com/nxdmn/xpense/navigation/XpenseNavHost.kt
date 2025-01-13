@@ -11,6 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
@@ -40,7 +41,7 @@ fun XpenseNavHost(
     }
     NavHost(
         navController = navController,
-        startDestination = ExpenseList.route,
+        startDestination = Route.ExpenseList,
         modifier = modifier
     ) {
         expenseListScreen(
@@ -59,7 +60,7 @@ fun XpenseNavHost(
     }
 }
 
-fun NavHostController.navigateSingleTopTo(route: String) =
+fun NavHostController.navigateSingleTopTo(route: Any) =
     this.navigate(route) {
         popUpTo(
             this@navigateSingleTopTo.graph.findStartDestination().id
@@ -70,19 +71,19 @@ fun NavHostController.navigateSingleTopTo(route: String) =
     }
 
 fun NavHostController.navigateToExpenseList() =
-    this.navigateSingleTopTo(ExpenseList.route)
+    this.navigateSingleTopTo(Route.ExpenseList)
 
 fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
-    this.navigateSingleTopTo("${ExpenseDetail.routePrefix}?expenseId=$expenseId")
+    this.navigateSingleTopTo(Route.ExpenseDetail(expenseId = expenseId))
 
 fun NavHostController.navigateToSetting() =
-    this.navigateSingleTopTo(Setting.route)
+    this.navigateSingleTopTo(Route.Settings)
 
 fun NavGraphBuilder.expenseListScreen(
     expenseRepository: ExpenseRepository,
     onNavigateToExpenseDetail: (Long?) -> Unit
 ) {
-    composable(route = ExpenseList.route) {
+    composable<Route.ExpenseList> {
         val extras = MutableCreationExtras().apply {
             set(ExpenseListViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
         }
@@ -103,15 +104,13 @@ fun NavGraphBuilder.expenseDetailScreen(
     categoryRepository: CategoryRepository,
     onNavigateBack: () -> Unit
 ) {
-    composable(
-        route = ExpenseDetail.route,
-        arguments = ExpenseDetail.arguments
-    ) { navBackStackEntry ->
-        val expenseId = navBackStackEntry.arguments?.getString(ExpenseDetail.expenseIdArg)
+    composable<Route.ExpenseDetail> { navBackStackEntry ->
+        val expenseDetail: Route.ExpenseDetail = navBackStackEntry.toRoute()
+
         val extras = MutableCreationExtras().apply {
             set(ExpenseDetailViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
             set(ExpenseDetailViewModel.CATEGORY_REPOSITORY_KEY, categoryRepository)
-            set(ExpenseDetailViewModel.EXPENSE_ID_KEY, expenseId?.toLong())
+            set(ExpenseDetailViewModel.EXPENSE_ID_KEY, expenseDetail.expenseId)
         }
         val vm: ExpenseDetailViewModel = viewModel(
             factory = ExpenseDetailViewModel.Factory,
@@ -126,7 +125,7 @@ fun NavGraphBuilder.expenseDetailScreen(
 }
 
 fun NavGraphBuilder.settingScreen() {
-    composable(route = Setting.route) {
+    composable<Route.Settings> {
         SettingScreen(SettingViewModel())
     }
 }
