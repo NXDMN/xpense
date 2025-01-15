@@ -2,10 +2,12 @@ package com.nxdmn.xpense.screens.expenseDetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
@@ -123,13 +125,13 @@ class ExpenseDetailViewModel(
     }
 
     companion object {
-        val EXPENSE_REPOSITORY_KEY = object : CreationExtras.Key<ExpenseRepository> {}
-        val CATEGORY_REPOSITORY_KEY = object : CreationExtras.Key<CategoryRepository> {}
         val EXPENSE_ID_KEY = object : CreationExtras.Key<Long?> {}
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val expenseRepo = this[EXPENSE_REPOSITORY_KEY] as ExpenseRepository
-                val categoryRepo = this[CATEGORY_REPOSITORY_KEY] as CategoryRepository
+                val app = this[APPLICATION_KEY] as MainApplication
+                val expenseRepo = app.expenseRepository
+                val categoryRepo = app.categoryRepository
+
                 val expenseId = this[EXPENSE_ID_KEY] as Long?
                 ExpenseDetailViewModel(
                     expenseRepository = expenseRepo,

@@ -29,13 +29,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.nxdmn.xpense.data.dataSources.json.CategoryJSONDataSource
-import com.nxdmn.xpense.data.dataSources.json.ExpenseJSONDataSource
-import com.nxdmn.xpense.data.dataSources.room.AppDatabase
-import com.nxdmn.xpense.data.dataSources.room.CategoryRoomDataSource
-import com.nxdmn.xpense.data.dataSources.room.ExpenseRoomDataSource
-import com.nxdmn.xpense.data.repositories.CategoryRepository
-import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.navigation.Route
 import com.nxdmn.xpense.navigation.XpenseNavHost
 import com.nxdmn.xpense.navigation.navigateToExpenseDetail
@@ -51,27 +44,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            XpenseApp(applicationContext)
+            XpenseApp()
         }
     }
 }
 
 @Composable
-private fun XpenseApp(context: Context) {
+private fun XpenseApp() {
     XpenseTheme {
         val navController = rememberNavController()
         val appBarState = rememberAppBarState(navController)
-
-//        val expenseRepository = ExpenseRepository(ExpenseJSONDataSource(context))
-//        val categoryRepository = CategoryRepository(CategoryJSONDataSource(context))
-
-        val expenseRepository =
-            ExpenseRepository(ExpenseRoomDataSource(AppDatabase.getDatabase(context).expenseDao()))
-        val categoryRepository = CategoryRepository(
-            CategoryRoomDataSource(
-                AppDatabase.getDatabase(context).categoryDao()
-            )
-        )
 
         Scaffold(
             modifier = Modifier.imePadding(),
@@ -127,8 +109,6 @@ private fun XpenseApp(context: Context) {
                 navController = navController,
                 modifier = Modifier.padding(innerPadding),
                 appBarState = appBarState,
-                expenseRepository = expenseRepository,
-                categoryRepository = categoryRepository
             )
         }
     }

@@ -28,8 +28,6 @@ fun XpenseNavHost(
     navController: NavHostController,
     modifier: Modifier,
     appBarState: AppBarState,
-    expenseRepository: ExpenseRepository,
-    categoryRepository: CategoryRepository,
 ) {
     navController.addOnDestinationChangedListener { controller, _, _ ->
         val routes = controller
@@ -45,15 +43,12 @@ fun XpenseNavHost(
         modifier = modifier
     ) {
         expenseListScreen(
-            expenseRepository,
             onNavigateToExpenseDetail = { expenseId ->
                 navController.navigateToExpenseDetail(expenseId)
             }
         )
         expenseDetailScreen(
             appBarState,
-            expenseRepository,
-            categoryRepository,
             onNavigateBack = { navController.popBackStack() }
         )
         settingScreen()
@@ -80,16 +75,11 @@ fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Route.Settings)
 
 fun NavGraphBuilder.expenseListScreen(
-    expenseRepository: ExpenseRepository,
     onNavigateToExpenseDetail: (Long?) -> Unit
 ) {
     composable<Route.ExpenseList> {
-        val extras = MutableCreationExtras().apply {
-            set(ExpenseListViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
-        }
         val vm: ExpenseListViewModel = viewModel(
             factory = ExpenseListViewModel.Factory,
-            extras = extras
         )
         ExpenseListScreen(
             vm,
@@ -100,16 +90,12 @@ fun NavGraphBuilder.expenseListScreen(
 
 fun NavGraphBuilder.expenseDetailScreen(
     appBarState: AppBarState,
-    expenseRepository: ExpenseRepository,
-    categoryRepository: CategoryRepository,
     onNavigateBack: () -> Unit
 ) {
     composable<Route.ExpenseDetail> { navBackStackEntry ->
         val expenseDetail: Route.ExpenseDetail = navBackStackEntry.toRoute()
 
-        val extras = MutableCreationExtras().apply {
-            set(ExpenseDetailViewModel.EXPENSE_REPOSITORY_KEY, expenseRepository)
-            set(ExpenseDetailViewModel.CATEGORY_REPOSITORY_KEY, categoryRepository)
+        val extras = MutableCreationExtras(navBackStackEntry.defaultViewModelCreationExtras).apply {
             set(ExpenseDetailViewModel.EXPENSE_ID_KEY, expenseDetail.expenseId)
         }
         val vm: ExpenseDetailViewModel = viewModel(
