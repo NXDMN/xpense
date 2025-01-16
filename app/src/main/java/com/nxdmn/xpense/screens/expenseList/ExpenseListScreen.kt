@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -33,6 +35,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -79,7 +82,7 @@ fun ExpenseListScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
             SecondaryTabRow(selectedTabIndex = expenseListUiState.viewMode.ordinal) {
                 ViewMode.entries.forEach { mode ->
                     Tab(
@@ -94,7 +97,7 @@ fun ExpenseListScreen(
 
             Column(
                 modifier = Modifier
-                    .padding(vertical = 20.dp)
+                    .padding(top = 20.dp)
                     .fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.background),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,22 +118,12 @@ fun ExpenseListScreen(
                     }
                 )
 
-                LazyColumn(
-                    contentPadding = PaddingValues(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(when (expenseListUiState.viewMode) {
-                        ViewMode.DAY -> expenseListUiState.dayExpenseList
-                        ViewMode.MONTH -> expenseListUiState.monthExpenseList
-                        ViewMode.YEAR -> expenseListUiState.yearExpenseList
-                    }, key = { expense -> expense.id }) {
-                        ExpenseCard(it, onNavigateToDetail = onNavigateToDetail)
-                    }
-                }
+                ExpenseListSection(
+                    expenseListViewModel.expenseGroupedByCategory,
+                    onNavigateToDetail = onNavigateToDetail
+                )
             }
         }
-
-
     }
 }
 
@@ -208,6 +201,48 @@ fun CalendarLabel(
             painter = painterResource(R.drawable.baseline_calendar_month_24),
             contentDescription = "Calendar",
         )
+    }
+}
+
+@Composable
+fun ExpenseListSection(
+    expenseGroupedByCategory: Map<CategoryModel, List<ExpenseModel>>,
+    onNavigateToDetail: (Long?) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 10.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        expenseGroupedByCategory.forEach {
+            Card {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    val total by remember(it.value) {
+                        mutableDoubleStateOf(it.value.fold(0.0) { acc, element -> acc + element.amount })
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(it.key.name, fontSize = 20.sp)
+                        Text("$ ${"%.2f".format(total)}", fontSize = 20.sp)
+                    }
+
+                    it.value.forEach { expense ->
+                        ExpenseCard(
+                            expense,
+                            onNavigateToDetail = onNavigateToDetail
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

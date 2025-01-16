@@ -42,6 +42,13 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
     private val _viewMode = MutableStateFlow(ViewMode.DAY)
     private val _selectedDate = MutableStateFlow(LocalDate.now())
 
+    val expenseGroupedByCategory
+        get() = when (uiState.value.viewMode) {
+            ViewMode.DAY -> uiState.value.dayExpenseList
+            ViewMode.MONTH -> uiState.value.monthExpenseList
+            ViewMode.YEAR -> uiState.value.yearExpenseList
+        }.groupBy { it.category }
+
     val uiState: StateFlow<ExpenseListUiState> =
         combine(
             repository.expenseListFlow,
