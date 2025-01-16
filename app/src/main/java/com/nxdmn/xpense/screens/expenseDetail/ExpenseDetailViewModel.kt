@@ -70,7 +70,12 @@ class ExpenseDetailViewModel(
             } else {
                 expenseRepository.createExpense(expense.copy())
             }
-            expenseRepository.getAllExpenses(refresh = true)
+        }
+    }
+
+    fun deleteExpense() {
+        viewModelScope.launch {
+            expenseRepository.deleteExpense(_uiState.value.expense)
         }
     }
 

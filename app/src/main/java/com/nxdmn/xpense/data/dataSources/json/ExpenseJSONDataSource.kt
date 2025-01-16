@@ -50,7 +50,7 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
     }
 
     override suspend fun delete(expense: ExpenseModel) {
-        _expenses.remove(expense)
+        _expenses.removeIf { it.id == expense.id }
         serialize()
     }
 

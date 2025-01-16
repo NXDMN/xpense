@@ -38,4 +38,5 @@ class ExpenseRepository(
 
     suspend fun createExpense(expense: ExpenseModel) = expenseLocalDataSource.create(expense)
 
+    suspend fun deleteExpense(expense: ExpenseModel) = expenseLocalDataSource.delete(expense)
 }
