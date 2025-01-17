@@ -13,14 +13,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
-import com.nxdmn.xpense.data.repositories.CategoryRepository
-import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
 import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
 import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
-import com.nxdmn.xpense.screens.setting.SettingScreen
-import com.nxdmn.xpense.screens.setting.SettingViewModel
+import com.nxdmn.xpense.screens.setting.SettingsScreen
+import com.nxdmn.xpense.screens.setting.SettingsViewModel
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -51,7 +49,7 @@ fun XpenseNavHost(
             appBarState,
             onNavigateBack = { navController.popBackStack() }
         )
-        settingScreen()
+        settingsScreen()
     }
 }
 
@@ -110,8 +108,8 @@ fun NavGraphBuilder.expenseDetailScreen(
     }
 }
 
-fun NavGraphBuilder.settingScreen() {
+fun NavGraphBuilder.settingsScreen() {
     composable<Route.Settings> {
-        SettingScreen(SettingViewModel())
+        SettingsScreen(SettingsViewModel())
     }
 }
