@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,8 +82,9 @@ fun ExpenseListScreen(
                 },
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
+        Column(modifier = Modifier.padding(innerPadding)) {
             SecondaryTabRow(selectedTabIndex = expenseListUiState.viewMode.ordinal) {
                 ViewMode.entries.forEach { mode ->
                     Tab(
