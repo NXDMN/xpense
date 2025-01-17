@@ -110,6 +110,9 @@ fun NavGraphBuilder.expenseDetailScreen(
 
 fun NavGraphBuilder.settingsScreen() {
     composable<Route.Settings> {
-        SettingsScreen(SettingsViewModel())
+        val vm: SettingsViewModel = viewModel(
+            factory = SettingsViewModel.Factory
+        )
+        SettingsScreen(vm)
     }
 }
