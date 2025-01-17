@@ -123,8 +123,13 @@ class AppBarState(private val navController: NavHostController) {
     val currentScreen
         @Composable get() = routes.find { route ->
             currentDestination?.hierarchy?.any {
-                val s = route.toString().substringBefore("@").substringBefore("$")
-                it.route?.contains(s) == true
+                var routeStr = route.toString()
+                if (routeStr.matches("""(\w+(\.\w+)+)\$\w+\$\w+@[0-9a-f]+""".toRegex())) {
+                    routeStr = routeStr.substring(routeStr.indexOfFirst { c -> c == '$' } + 1,
+                        routeStr.indexOfLast { c -> c == '$' })
+                }
+
+                it.route?.contains(routeStr) == true
             } == true
         }
             ?: Route.ExpenseList
