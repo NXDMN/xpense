@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -58,7 +60,7 @@ import com.nxdmn.xpense.data.models.CategoryModel
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
-    onNavigateToCategoryDetail: (Long) -> Unit
+    onNavigateToCategoryDetail: (Long?) -> Unit
 ) {
 
     val settingsUiState by settingsViewModel.uiState.collectAsState()
@@ -143,7 +145,7 @@ fun SettingsListItem(
 }
 
 @Composable
-fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: (Long) -> Unit) {
+fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: (Long?) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
     SettingsListItem(
@@ -156,11 +158,18 @@ fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: 
             )
         },
         trailing = {
-            Icon(
-                Icons.AutoMirrored.Sharp.KeyboardArrowRight,
-                contentDescription = "Right Arrow",
-                modifier = Modifier.rotate(if (isExpanded) 90f else 0f)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = {
+                    onNavigateToCategoryDetail(null)
+                }) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add Category")
+                }
+                Icon(
+                    Icons.AutoMirrored.Sharp.KeyboardArrowRight,
+                    contentDescription = "Right Arrow",
+                    modifier = Modifier.rotate(if (isExpanded) 90f else 0f)
+                )
+            }
         },
         isTop = true,
         onClick = {

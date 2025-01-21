@@ -116,7 +116,7 @@ fun NavGraphBuilder.expenseDetailScreen(
     }
 }
 
-fun NavGraphBuilder.settingsScreen(onNavigateToCategoryDetail: (Long) -> Unit) {
+fun NavGraphBuilder.settingsScreen(onNavigateToCategoryDetail: (Long?) -> Unit) {
     composable<Route.Settings> {
         val vm: SettingsViewModel = viewModel(
             factory = SettingsViewModel.Factory
