@@ -25,6 +25,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +56,10 @@ import com.nxdmn.xpense.data.models.CategoryModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
+fun SettingsScreen(
+    settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
+    onNavigateToCategoryDetail: (Long) -> Unit
+) {
 
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
@@ -79,7 +83,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel = viewModel(factory = Se
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            CategoryList(settingsUiState.categoryList)
+            CategoryList(
+                settingsUiState.categoryList,
+                onNavigateToCategoryDetail = onNavigateToCategoryDetail
+            )
 
             HorizontalDivider(color = Color.LightGray)
 
@@ -136,7 +143,7 @@ fun SettingsListItem(
 }
 
 @Composable
-fun CategoryList(categoryList: List<CategoryModel>) {
+fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: (Long) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
     SettingsListItem(
@@ -184,11 +191,20 @@ fun CategoryList(categoryList: List<CategoryModel>) {
                         )
                     },
                     trailing = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete Category")
-                            Icon(Icons.Filled.Edit, contentDescription = "Edit Category")
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            IconButton(onClick = {}) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete Category")
+                            }
+                            IconButton(onClick = {
+                                onNavigateToCategoryDetail(it.id)
+                            }) {
+                                Icon(Icons.Filled.Edit, contentDescription = "Edit Category")
+                            }
                         }
                     },
+                    onClick = {
+                        onNavigateToCategoryDetail(it.id)
+                    }
                 )
             }
         }

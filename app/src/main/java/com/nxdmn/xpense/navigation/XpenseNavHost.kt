@@ -13,6 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailScreen
+import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailViewModel
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailViewModel
 import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
@@ -49,7 +51,10 @@ fun XpenseNavHost(
             appBarState,
             onNavigateBack = { navController.popBackStack() }
         )
-        settingsScreen()
+        settingsScreen(onNavigateToCategoryDetail = { categoryId ->
+            navController.navigateToCategoryDetail(categoryId)
+        })
+        categoryDetailScreen(onNavigateBack = { navController.popBackStack() })
     }
 }
 
@@ -71,6 +76,9 @@ fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
 
 fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Route.Settings)
+
+fun NavHostController.navigateToCategoryDetail(categoryId: Long? = null) =
+    this.navigateSingleTopTo(Route.CategoryDetail(categoryId = categoryId))
 
 fun NavGraphBuilder.expenseListScreen(
     onNavigateToExpenseDetail: (Long?) -> Unit
@@ -108,11 +116,26 @@ fun NavGraphBuilder.expenseDetailScreen(
     }
 }
 
-fun NavGraphBuilder.settingsScreen() {
+fun NavGraphBuilder.settingsScreen(onNavigateToCategoryDetail: (Long) -> Unit) {
     composable<Route.Settings> {
         val vm: SettingsViewModel = viewModel(
             factory = SettingsViewModel.Factory
         )
-        SettingsScreen(vm)
+        SettingsScreen(vm, onNavigateToCategoryDetail)
+    }
+}
+
+fun NavGraphBuilder.categoryDetailScreen(onNavigateBack: () -> Unit) {
+    composable<Route.CategoryDetail> { navBackStackEntry ->
+        val categoryDetail: Route.CategoryDetail = navBackStackEntry.toRoute()
+
+        val extras = MutableCreationExtras(navBackStackEntry.defaultViewModelCreationExtras).apply {
+            set(CategoryDetailViewModel.CATEGORY_ID_KEY, categoryDetail.categoryId)
+        }
+        val vm: CategoryDetailViewModel = viewModel(
+            factory = CategoryDetailViewModel.Factory,
+            extras = extras
+        )
+        CategoryDetailScreen(vm, onNavigateBack)
     }
 }
