@@ -4,6 +4,7 @@ import com.nxdmn.xpense.data.models.CategoryModel
 
 interface CategoryDataSource {
     suspend fun findAll(): List<CategoryModel>
+    suspend fun find(id: Long): CategoryModel?
     suspend fun create(category: CategoryModel)
     suspend fun update(category: CategoryModel)
     suspend fun delete(category: CategoryModel)

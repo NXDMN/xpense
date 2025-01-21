@@ -23,6 +23,8 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
 
     override suspend fun findAll(): List<CategoryModel> = _categories
 
+    override suspend fun find(id: Long): CategoryModel? = _categories.find { it.id == id }
+
     override suspend fun create(category: CategoryModel) {
         category.id = Random().nextLong()
         _categories.add(category)

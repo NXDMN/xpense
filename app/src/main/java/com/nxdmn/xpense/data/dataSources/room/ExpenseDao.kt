@@ -14,7 +14,7 @@ interface ExpenseDao {
     suspend fun findAll(): List<ExpenseEntity>
 
     @Query("SELECT * FROM ExpenseEntity WHERE id = :id")
-    suspend fun findById(id: Long): ExpenseEntity
+    suspend fun findById(id: Long): ExpenseEntity?
 
     @Transaction
     @Query("SELECT * FROM ExpenseEntity WHERE id = :id")

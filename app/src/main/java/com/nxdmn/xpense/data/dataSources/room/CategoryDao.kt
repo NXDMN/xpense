@@ -13,7 +13,7 @@ interface CategoryDao {
     suspend fun findAll(): List<CategoryEntity>
 
     @Query("SELECT * FROM CategoryEntity WHERE id = :id")
-    suspend fun findById(id: Long): CategoryEntity
+    suspend fun findById(id: Long): CategoryEntity?
 
     @Update
     suspend fun update(category: CategoryEntity)

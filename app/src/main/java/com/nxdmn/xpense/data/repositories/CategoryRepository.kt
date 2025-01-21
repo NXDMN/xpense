@@ -30,6 +30,11 @@ class CategoryRepository(
         return getAllCategoriesMutex.withLock { this.categoryList }
     }
 
+    suspend fun getCategory(id: Long): CategoryModel? {
+        return if (categoryList.isNotEmpty()) categoryList.find { it.id == id }
+        else categoryLocalDataSource.find(id)
+    }
+
     suspend fun updateCategory(category: CategoryModel) = categoryLocalDataSource.update(category)
 
     suspend fun createCategory(category: CategoryModel) = categoryLocalDataSource.create(category)

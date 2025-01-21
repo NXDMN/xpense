@@ -14,6 +14,10 @@ class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource 
         return dao.findAll().map { it.asModel() }
     }
 
+    override suspend fun find(id: Long): CategoryModel? {
+        return dao.findById(id)?.asModel()
+    }
+
     override suspend fun create(category: CategoryModel) {
         dao.create(category.asEntity())
     }
@@ -24,10 +28,6 @@ class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource 
 
     override suspend fun delete(category: CategoryModel) {
         dao.delete(category.asEntity())
-    }
-
-    suspend fun findById(id: Long): CategoryModel {
-        return dao.findById(id).asModel()
     }
 
     suspend fun getCategoryWithExpenses(): List<CategoryWithExpensesModel> {
