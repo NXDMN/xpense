@@ -39,6 +39,10 @@ class CategoryDetailViewModel(repository: CategoryRepository, categoryId: Long?)
         }
     }
 
+    fun updateName(value: String) = _uiState.update {
+        it.copy(name = value)
+    }
+
     companion object {
         val CATEGORY_ID_KEY = object : CreationExtras.Key<Long?> {}
         val Factory: ViewModelProvider.Factory = viewModelFactory {
