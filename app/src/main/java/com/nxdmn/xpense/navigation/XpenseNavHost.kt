@@ -78,7 +78,9 @@ fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Route.Settings)
 
 fun NavHostController.navigateToCategoryDetail(categoryId: Long? = null) =
-    this.navigateSingleTopTo(Route.CategoryDetail(categoryId = categoryId))
+    this.navigate(Route.CategoryDetail(categoryId = categoryId)) {
+        launchSingleTop = true
+    }
 
 fun NavGraphBuilder.expenseListScreen(
     onNavigateToExpenseDetail: (Long?) -> Unit
