@@ -62,7 +62,6 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
     onNavigateToCategoryDetail: (Long?) -> Unit
 ) {
-
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     Scaffold(
