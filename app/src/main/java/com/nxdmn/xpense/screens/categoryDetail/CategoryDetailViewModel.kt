@@ -18,12 +18,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class CategoryDetailUiState(
+    val isEdit: Boolean = false,
     val name: String? = null,
     var icon: CategoryIcon? = null,
-    var color: Long? = null,
+    var color: Long? = 0xFF808080,
 )
 
-class CategoryDetailViewModel(repository: CategoryRepository, categoryId: Long?) : ViewModel() {
+class CategoryDetailViewModel(
+    private val repository: CategoryRepository,
+    private val categoryId: Long?
+) : ViewModel() {
     private val _uiState = MutableStateFlow(CategoryDetailUiState())
     val uiState: StateFlow<CategoryDetailUiState> = _uiState.asStateFlow()
 
@@ -34,7 +38,12 @@ class CategoryDetailViewModel(repository: CategoryRepository, categoryId: Long?)
 
             if (category != null)
                 _uiState.update {
-                    it.copy(name = category.name, icon = category.icon, color = category.color)
+                    it.copy(
+                        name = category.name,
+                        icon = category.icon,
+                        color = category.color,
+                        isEdit = true
+                    )
                 }
         }
     }
@@ -49,6 +58,34 @@ class CategoryDetailViewModel(repository: CategoryRepository, categoryId: Long?)
 
     fun updateColor(value: Long) = _uiState.update {
         it.copy(color = value)
+    }
+
+    fun saveCategory() {
+        val category = CategoryModel(
+            id = categoryId ?: 0,
+            name = _uiState.value.name!!,
+            icon = _uiState.value.icon!!,
+            color = _uiState.value.color!!
+        )
+        viewModelScope.launch {
+            if (_uiState.value.isEdit) {
+                repository.updateCategory(category)
+            } else {
+                repository.createCategory(category)
+            }
+        }
+    }
+
+    fun deleteCategory() {
+        val category = CategoryModel(
+            id = categoryId ?: 0,
+            name = _uiState.value.name!!,
+            icon = _uiState.value.icon!!,
+            color = _uiState.value.color!!
+        )
+        viewModelScope.launch {
+            repository.deleteCategory(category)
+        }
     }
 
     companion object {

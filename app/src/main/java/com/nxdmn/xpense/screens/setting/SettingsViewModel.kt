@@ -27,7 +27,7 @@ class SettingsViewModel(repository: CategoryRepository) : ViewModel() {
     init {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(categoryList = repository.getAllCategories())
+                it.copy(categoryList = repository.getAllCategories(true))
             }
         }
     }

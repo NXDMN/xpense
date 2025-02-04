@@ -41,7 +41,7 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
     }
 
     override suspend fun delete(category: CategoryModel) {
-        _categories.remove(category)
+        _categories.removeIf { it.id == category.id }
         serialize()
     }
 

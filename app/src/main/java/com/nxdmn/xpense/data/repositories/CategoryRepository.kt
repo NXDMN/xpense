@@ -39,6 +39,8 @@ class CategoryRepository(
 
     suspend fun createCategory(category: CategoryModel) = categoryLocalDataSource.create(category)
 
+    suspend fun deleteCategory(category: CategoryModel) = categoryLocalDataSource.delete(category)
+
     private suspend fun generateDefaultList(): List<CategoryModel> {
         return listOf(
             CategoryModel(id = 1, name = "Food", icon = CategoryIcon.EATING, color = 0xFFACDDDE),

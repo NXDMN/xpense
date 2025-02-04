@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nxdmn.xpense.R
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.ColorPicker
 
@@ -69,6 +71,33 @@ fun CategoryDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back Button"
+                        )
+                    }
+                },
+                actions = {
+                    if (categoryDetailUiState.value.isEdit)
+                        IconButton(
+                            onClick = {
+                                categoryDetailViewModel.deleteCategory()
+                                onNavigateBack()
+                            },
+                            colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete"
+                            )
+                        }
+                    IconButton(
+                        onClick = {
+                            categoryDetailViewModel.saveCategory()
+                            onNavigateBack()
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.baseline_save_24),
+                            contentDescription = "Save"
                         )
                     }
                 },
