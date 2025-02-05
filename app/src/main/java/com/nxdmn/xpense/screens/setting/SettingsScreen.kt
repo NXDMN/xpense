@@ -38,7 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,8 +85,9 @@ fun SettingsScreen(
                 .padding(20.dp)
         ) {
             CategoryList(
-                settingsUiState.categoryList,
-                onNavigateToCategoryDetail = onNavigateToCategoryDetail
+                categoryList = settingsUiState.categoryList,
+                onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+                deleteCategory = { settingsViewModel.deleteCategory(it) }
             )
 
             HorizontalDivider(color = Color.LightGray)
@@ -144,8 +145,12 @@ fun SettingsListItem(
 }
 
 @Composable
-fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: (Long?) -> Unit) {
-    var isExpanded by remember { mutableStateOf(false) }
+fun CategoryList(
+    categoryList: List<CategoryModel>,
+    onNavigateToCategoryDetail: (Long?) -> Unit,
+    deleteCategory: (CategoryModel) -> Unit
+) {
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     SettingsListItem(
         title = "Category",
@@ -200,7 +205,9 @@ fun CategoryList(categoryList: List<CategoryModel>, onNavigateToCategoryDetail: 
                     },
                     trailing = {
                         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            IconButton(onClick = {}) {
+                            IconButton(onClick = {
+                                deleteCategory(it)
+                            }) {
                                 Icon(Icons.Filled.Delete, contentDescription = "Delete Category")
                             }
                             IconButton(onClick = {

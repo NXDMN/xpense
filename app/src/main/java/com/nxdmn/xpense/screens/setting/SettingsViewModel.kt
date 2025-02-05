@@ -19,16 +19,21 @@ data class SettingsUiState(
     val categoryList: List<CategoryModel> = emptyList(),
 )
 
-class SettingsViewModel(repository: CategoryRepository) : ViewModel() {
+class SettingsViewModel(private val repository: CategoryRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    init {
+    suspend fun refreshCategoryList() {
+        _uiState.update {
+            it.copy(categoryList = repository.getAllCategories(true))
+        }
+    }
+
+    fun deleteCategory(category: CategoryModel) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(categoryList = repository.getAllCategories(true))
-            }
+            repository.deleteCategory(category)
+            refreshCategoryList()
         }
     }
 
