@@ -28,7 +28,7 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
             emit(_expenses)
     }
 
-    override suspend fun findAll(): List<ExpenseModel> = _expenses
+    override suspend fun findAll(): List<ExpenseModel> = _expenses.toList()
 
     override suspend fun find(id: Long): ExpenseModel? = _expenses.find { it.id == id }
 
