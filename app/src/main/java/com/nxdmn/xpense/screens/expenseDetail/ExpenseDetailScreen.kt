@@ -70,6 +70,7 @@ import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
+import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,10 +139,14 @@ fun ExpenseDetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 DeleteConfirmationDialog(
-                    openDeleteDialog = openDeleteDialog,
-                    onOpenDeleteDialogChaned = { openDeleteDialog = it },
-                    deleteExpense = { expenseDetailViewModel.deleteExpense() },
-                    onNavigateBack = onNavigateBack
+                    description = "Are you sure you want to delete this expense?",
+                    openDialog = openDeleteDialog,
+                    onCancelClicked = { openDeleteDialog = false },
+                    onConfirmClicked = {
+                        expenseDetailViewModel.deleteExpense()
+                        openDeleteDialog = false
+                        onNavigateBack()
+                    },
                 )
 
                 var amount by remember { mutableStateOf(if (expense.amount == 0.0) "" else expense.amount.toString()) }
@@ -239,57 +244,6 @@ fun ExpenseDetailScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeleteConfirmationDialog(
-    openDeleteDialog: Boolean,
-    onOpenDeleteDialogChaned: (Boolean) -> Unit,
-    deleteExpense: () -> Unit,
-    onNavigateBack: () -> Unit
-) {
-    if (openDeleteDialog)
-        BasicAlertDialog(onDismissRequest = { onOpenDeleteDialogChaned(false) }) {
-            Surface(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .wrapContentHeight(),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
-            ) {
-                Column {
-                    Text(
-                        "Delete Confirmation",
-                        modifier = Modifier.padding(16.dp),
-                        fontSize = 20.sp
-                    )
-                    HorizontalDivider(color = Color.LightGray)
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Are you sure you want to delete this expense?")
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            TextButton(onClick = { onOpenDeleteDialogChaned(false) }) {
-                                Text("Cancel")
-                            }
-                            TextButton(
-                                onClick = {
-                                    deleteExpense()
-                                    onOpenDeleteDialogChaned(false)
-                                    onNavigateBack()
-                                },
-                            ) {
-                                Text("Confirm")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
 }
 
 @OptIn(ExperimentalLayoutApi::class)

@@ -198,6 +198,16 @@ fun CategoryList(
     ) {
         Column {
             categoryList.forEach {
+                var openDeleteDialog by remember { mutableStateOf(false) }
+                DeleteConfirmationDialog(
+                    description = "Are you sure you want to delete this category?",
+                    openDialog = openDeleteDialog,
+                    onCancelClicked = { openDeleteDialog = false },
+                    onConfirmClicked = {
+                        deleteCategory(it)
+                        openDeleteDialog = false
+                    },
+                )
                 SettingsListItem(
                     title = it.name,
                     leading = {
@@ -217,7 +227,7 @@ fun CategoryList(
                     trailing = {
                         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                             IconButton(onClick = {
-                                deleteCategory(it)
+                                openDeleteDialog = true
                             }) {
                                 Icon(Icons.Filled.Delete, contentDescription = "Delete Category")
                             }

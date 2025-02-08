@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.ColorPicker
+import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -56,6 +57,8 @@ fun CategoryDetailScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val categoryDetailUiState = categoryDetailViewModel.uiState.collectAsState()
+
+    var openDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -78,8 +81,7 @@ fun CategoryDetailScreen(
                     if (categoryDetailUiState.value.isEdit)
                         IconButton(
                             onClick = {
-                                categoryDetailViewModel.deleteCategory()
-                                onNavigateBack()
+                                openDeleteDialog = true
                             },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                         ) {
@@ -117,6 +119,17 @@ fun CategoryDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            DeleteConfirmationDialog(
+                description = "Are you sure you want to delete this category?",
+                openDialog = openDeleteDialog,
+                onCancelClicked = { openDeleteDialog = false },
+                onConfirmClicked = {
+                    categoryDetailViewModel.deleteCategory()
+                    openDeleteDialog = false
+                    onNavigateBack()
+                },
+            )
+
             val focusManager = LocalFocusManager.current
 
             TextField(
