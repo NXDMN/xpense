@@ -122,7 +122,7 @@ fun CategoryDetailScreen(
             DeleteConfirmationDialog(
                 description = "Are you sure you want to delete this category?",
                 openDialog = openDeleteDialog,
-                onCancelClicked = { openDeleteDialog = false },
+                onDismiss = { openDeleteDialog = false },
                 onConfirmClicked = {
                     categoryDetailViewModel.deleteCategory()
                     openDeleteDialog = false

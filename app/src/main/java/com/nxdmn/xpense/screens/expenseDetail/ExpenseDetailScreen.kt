@@ -141,7 +141,7 @@ fun ExpenseDetailScreen(
                 DeleteConfirmationDialog(
                     description = "Are you sure you want to delete this expense?",
                     openDialog = openDeleteDialog,
-                    onCancelClicked = { openDeleteDialog = false },
+                    onDismiss = { openDeleteDialog = false },
                     onConfirmClicked = {
                         expenseDetailViewModel.deleteExpense()
                         openDeleteDialog = false

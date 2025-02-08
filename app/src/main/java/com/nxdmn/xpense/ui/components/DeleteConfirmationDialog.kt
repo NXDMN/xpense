@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.sp
 fun DeleteConfirmationDialog(
     description: String,
     openDialog: Boolean,
-    onCancelClicked: () -> Unit,
+    onDismiss: () -> Unit,
     onConfirmClicked: () -> Unit,
 ) {
     if (openDialog)
-        BasicAlertDialog(onDismissRequest = { onCancelClicked() }) {
+        BasicAlertDialog(onDismissRequest = onDismiss) {
             Surface(
                 modifier = Modifier
                     .wrapContentWidth()
@@ -54,13 +54,11 @@ fun DeleteConfirmationDialog(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            TextButton(onClick = { onCancelClicked() }) {
+                            TextButton(onClick = onDismiss) {
                                 Text("Cancel")
                             }
                             TextButton(
-                                onClick = {
-                                    onConfirmClicked()
-                                },
+                                onClick = onConfirmClicked,
                             ) {
                                 Text("Confirm")
                             }
