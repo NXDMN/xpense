@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -130,7 +131,7 @@ fun SettingsScreen(
                 trailing = {
                     Text(
                         settingsUiState.currency?.currencyCode ?: "",
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.height(24.dp),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                     )
@@ -198,7 +199,10 @@ fun CategoryList(
             )
         },
         trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.height(24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 IconButton(onClick = {
                     onNavigateToCategoryDetail(null)
                 }) {
@@ -288,7 +292,6 @@ fun CurrencySelectionDialog(
             ) {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(currencySymbolMap.keys.toList(), key = { c -> c.hashCode() }) {
                         Surface(
@@ -301,7 +304,7 @@ fun CurrencySelectionDialog(
                                         onCurrencySelected(it)
                                     }
                                 )
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 20.dp),
                         ) {
                             Text("${it.displayName} - ${it.currencyCode} (${currencySymbolMap[it]})")
                         }
@@ -345,32 +348,45 @@ fun TestPreview() {
                     )
                 },
                 trailing = {
-                    Icon(
-                        Icons.AutoMirrored.Sharp.KeyboardArrowRight,
-                        contentDescription = "Right Arrow"
-                    )
+                    Row(
+                        modifier = Modifier.height(24.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.Add, contentDescription = "Add Category")
+                        }
+                        Icon(
+                            Icons.AutoMirrored.Sharp.KeyboardArrowRight,
+                            contentDescription = "Right Arrow",
+                        )
+                    }
                 },
-                isTop = true
+                isTop = true,
+                onClick = { }
             )
-            HorizontalDivider()
+
+            HorizontalDivider(color = Color.LightGray)
+
+            var openDialog by remember { mutableStateOf(false) }
+
             SettingsListItem(
                 title = "Currency",
                 leading = {
                     Icon(
                         painterResource(R.drawable.baseline_currency_exchange_24),
-                        contentDescription = "Category",
+                        contentDescription = "Currency",
                         modifier = Modifier.size(36.dp)
                     )
                 },
                 trailing = {
                     Text(
-                        "$",
-                        modifier = Modifier.size(24.dp),
+                        "SGD",
+                        modifier = Modifier.height(24.dp),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                     )
                 },
-                onClick = {},
+                onClick = { openDialog = true },
                 isBottom = true,
             )
         }
