@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_package = "com.nxdmn.xpense.proto";
+// need this java_multiple_files=true else the import will be "import com.nxdmn.xpense.proto.UserPrefsOuterClass.UserPrefs"
+option java_multiple_files = true;
+
+message UserPrefs{
+  message Locale{
+    string language = 1;
+    string country = 2;
+  }
+
+  string currencyCode = 1;
+  Locale locale = 2;
+}

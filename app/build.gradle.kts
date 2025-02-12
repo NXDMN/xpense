@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -52,7 +53,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -68,6 +68,8 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.vico.compose.m3)
+    implementation(libs.androidx.datastore)
+    implementation(libs.protobuf.kotlin.lite)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -76,4 +78,24 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// https://github.com/google/protobuf-gradle-plugin
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:21.0-rc-1"
+    }
+
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+                create("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

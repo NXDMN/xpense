@@ -16,6 +16,9 @@ ksp = "1.9.23-1.0.20"
 coroutines = "1.8.1"
 nav = "2.8.5"
 vico = "2.0.0-alpha.28"
+datastore = "1.1.2"
+protobuf = "0.9.4"
+protobufKotlinLite = "4.30.0-RC1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,10 +43,13 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "nav" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+androidx-datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
+protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobufKotlinLite" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
 
