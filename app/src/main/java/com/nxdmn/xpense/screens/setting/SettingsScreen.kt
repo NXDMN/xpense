@@ -130,7 +130,7 @@ fun SettingsScreen(
                 },
                 trailing = {
                     Text(
-                        settingsUiState.currency?.currencyCode ?: "",
+                        settingsUiState.currencySymbol ?: "",
                         modifier = Modifier.height(24.dp),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,

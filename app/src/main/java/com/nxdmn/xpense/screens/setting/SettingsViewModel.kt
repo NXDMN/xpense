@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
+import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,17 +21,34 @@ import java.util.Locale
 data class SettingsUiState(
     val categoryList: List<CategoryModel> = emptyList(),
     val currencySymbolMap: Map<Currency, String> = emptyMap(),
-    val currency: Currency? = null
+    val currencySymbol: String? = null
 )
 
-class SettingsViewModel(private val repository: CategoryRepository) : ViewModel() {
+class SettingsViewModel(
+    private val repository: CategoryRepository,
+    private val dataStore: UserPrefsDataStore
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    private val currencyLocaleMap: Map<Currency, Locale> = Locale.getAvailableLocales()
+        .mapNotNull { locale ->
+            Currency.getInstance(locale)?.let { it to locale }
+        }
+        .sortedBy { it.first.displayName }
+        .toMap()
+    private lateinit var currency: Currency
+
     init {
-        _uiState.update {
-            it.copy(currencySymbolMap = getAllCurrencies())
+        viewModelScope.launch {
+            currency = dataStore.getCurrency()
+            _uiState.update {
+                it.copy(
+                    currencySymbolMap = getAllCurrencies(),
+                    currencySymbol = currency.getSymbol(currencyLocaleMap[currency])
+                )
+            }
         }
     }
 
@@ -48,23 +66,22 @@ class SettingsViewModel(private val repository: CategoryRepository) : ViewModel(
     }
 
     private fun getAllCurrencies(): Map<Currency, String> {
-        return Locale.getAvailableLocales()
-            .mapNotNull { locale ->
-                Currency.getInstance(locale)?.let { it to locale }
-            }
-            .sortedBy { it.first.displayName }
-            .associate { it.first to it.first.getSymbol(it.second) }
+        return currencyLocaleMap.mapValues { it.key.getSymbol(it.value) }
     }
 
     fun updateCurrency(value: Currency) {
-        _uiState.update { it.copy(currency = value) }
+        _uiState.update { it.copy(currencySymbol = value.getSymbol(currencyLocaleMap[value])) }
+        viewModelScope.launch {
+            dataStore.setCurrency(value)
+        }
     }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val repo = (this[APPLICATION_KEY] as MainApplication).categoryRepository
-                SettingsViewModel(repo)
+                val ds = (this[APPLICATION_KEY] as MainApplication).userPrefsDataStore
+                SettingsViewModel(repo, ds)
             }
         }
     }
