@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
+import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.CurrencyHelper
@@ -25,6 +26,7 @@ data class ExpenseListUiState(
     val currencySymbol: String? = null,
     val viewMode: ViewMode = ViewMode.DAY,
     val totalExpenseList: List<ExpenseModel> = emptyList(),
+    val expensesGroupedByCategory: Map<CategoryModel, List<ExpenseModel>> = emptyMap(),
     val dayExpenseList: List<ExpenseModel> = emptyList(),
     val dayExpenseAmount: Double = 0.0,
     val monthExpenseList: List<ExpenseModel> = emptyList(),
@@ -48,13 +50,6 @@ class ExpenseListViewModel(
     private val _viewMode = MutableStateFlow(ViewMode.DAY)
     private val _selectedDate = MutableStateFlow(LocalDate.now())
 
-    val expenseGroupedByCategory
-        get() = when (uiState.value.viewMode) {
-            ViewMode.DAY -> uiState.value.dayExpenseList
-            ViewMode.MONTH -> uiState.value.monthExpenseList
-            ViewMode.YEAR -> uiState.value.yearExpenseList
-        }.groupBy { it.category }
-
     val uiState: StateFlow<ExpenseListUiState> =
         combine(
             repository.expenseListFlow,
@@ -72,6 +67,11 @@ class ExpenseListViewModel(
                 currencySymbol = currencySymbol,
                 viewMode = viewMode,
                 totalExpenseList = expenses,
+                expensesGroupedByCategory = when (viewMode) {
+                    ViewMode.DAY -> dayExpenseList
+                    ViewMode.MONTH -> monthExpenseList
+                    ViewMode.YEAR -> yearExpenseList
+                }.groupBy { it.category },
                 dayExpenseList = dayExpenseList,
                 dayExpenseAmount = dayExpenseList.sumOf { e -> e.amount },
                 monthExpenseList = monthExpenseList,

@@ -122,7 +122,7 @@ fun ExpenseListScreen(
 
                 ExpenseListSection(
                     currencySymbol = expenseListUiState.currencySymbol ?: "",
-                    expenseGroupedByCategory = expenseListViewModel.expenseGroupedByCategory,
+                    expenseGroupedByCategory = expenseListUiState.expensesGroupedByCategory,
                     onNavigateToDetail = onNavigateToDetail
                 )
             }

@@ -261,7 +261,7 @@ fun CategorySection(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(device = Devices.PIXEL_7_PRO, heightDp = 2000)
 @Composable
 fun TestPreview() {
@@ -339,9 +339,8 @@ fun TestPreview() {
                     CategoryModel(name = "Utilities", icon = CategoryIcon.UTILITIES),
                     CategoryModel(name = "Insurance", icon = CategoryIcon.LIFE),
                 ),
-                selected,
-                { selected = it }
-            )
+                selected
+            ) { selected = it }
 
 
             TextField(

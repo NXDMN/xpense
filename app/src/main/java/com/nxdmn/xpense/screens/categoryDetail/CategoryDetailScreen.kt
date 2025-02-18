@@ -56,7 +56,7 @@ fun CategoryDetailScreen(
     categoryDetailViewModel: CategoryDetailViewModel = viewModel(factory = CategoryDetailViewModel.Factory),
     onNavigateBack: () -> Unit = {}
 ) {
-    val categoryDetailUiState = categoryDetailViewModel.uiState.collectAsState()
+    val categoryDetailUiState by categoryDetailViewModel.uiState.collectAsState()
 
     var openDeleteDialog by remember { mutableStateOf(false) }
 
@@ -78,7 +78,7 @@ fun CategoryDetailScreen(
                     }
                 },
                 actions = {
-                    if (categoryDetailUiState.value.isEdit)
+                    if (categoryDetailUiState.isEdit)
                         IconButton(
                             onClick = {
                                 openDeleteDialog = true
@@ -133,7 +133,7 @@ fun CategoryDetailScreen(
             val focusManager = LocalFocusManager.current
 
             TextField(
-                value = categoryDetailUiState.value.name ?: "",
+                value = categoryDetailUiState.name ?: "",
                 onValueChange = {
                     categoryDetailViewModel.updateName(it)
                 },
@@ -165,7 +165,7 @@ fun CategoryDetailScreen(
                         contentDescription = icon.name,
                         modifier = Modifier
                             .let {
-                                if (categoryDetailUiState.value.icon?.ordinal == icon.ordinal) it.border(
+                                if (categoryDetailUiState.icon?.ordinal == icon.ordinal) it.border(
                                     1.dp,
                                     Color.Black
                                 )
@@ -179,8 +179,8 @@ fun CategoryDetailScreen(
                                 }
                             )
                             .background(
-                                if (categoryDetailUiState.value.icon?.ordinal == icon.ordinal && categoryDetailUiState.value.color != null)
-                                    Color(categoryDetailUiState.value.color!!)
+                                if (categoryDetailUiState.icon?.ordinal == icon.ordinal && categoryDetailUiState.color != null)
+                                    Color(categoryDetailUiState.color!!)
                                 else Color.Transparent
                             )
                             .padding(5.dp)
@@ -189,7 +189,7 @@ fun CategoryDetailScreen(
             }
 
             ColorPicker(
-                color = categoryDetailUiState.value.color ?: 0xFF808080,
+                color = categoryDetailUiState.color ?: 0xFF808080,
                 onColorSelected = {
                     categoryDetailViewModel.updateColor(it)
                 }

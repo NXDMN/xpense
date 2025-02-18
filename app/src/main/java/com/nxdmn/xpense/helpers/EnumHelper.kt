@@ -2,7 +2,6 @@ package com.nxdmn.xpense.helpers
 
 import androidx.room.TypeConverter
 import com.nxdmn.xpense.ui.CategoryIcon
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -18,7 +17,6 @@ open class EnumSerializer<E : Enum<E>>(
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(serialName, PrimitiveKind.INT)
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: E) {
         val index = entries.indexOf(value)
         if (index == -1) {
@@ -37,7 +35,6 @@ open class EnumSerializer<E : Enum<E>>(
     }
 
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): E {
         val index = decoder.decodeInt()
         if (index !in entries.indices) {
