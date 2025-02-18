@@ -114,14 +114,15 @@ fun ExpenseListScreen(
                 PieChart(
                     charts = expenseListUiState.charts,
                     text = when (expenseListUiState.viewMode) {
-                        ViewMode.DAY -> "$${expenseListUiState.dayExpenseAmount}"
-                        ViewMode.MONTH -> "$${expenseListUiState.monthExpenseAmount}"
-                        ViewMode.YEAR -> "$${expenseListUiState.yearExpenseAmount}"
+                        ViewMode.DAY -> "${expenseListUiState.currencySymbol}${expenseListUiState.dayExpenseAmount}"
+                        ViewMode.MONTH -> "${expenseListUiState.currencySymbol}${expenseListUiState.monthExpenseAmount}"
+                        ViewMode.YEAR -> "${expenseListUiState.currencySymbol}${expenseListUiState.yearExpenseAmount}"
                     }
                 )
 
                 ExpenseListSection(
-                    expenseListViewModel.expenseGroupedByCategory,
+                    currencySymbol = expenseListUiState.currencySymbol ?: "",
+                    expenseGroupedByCategory = expenseListViewModel.expenseGroupedByCategory,
                     onNavigateToDetail = onNavigateToDetail
                 )
             }
@@ -208,6 +209,7 @@ fun CalendarLabel(
 
 @Composable
 fun ExpenseListSection(
+    currencySymbol: String,
     expenseGroupedByCategory: Map<CategoryModel, List<ExpenseModel>>,
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
@@ -233,11 +235,15 @@ fun ExpenseListSection(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(it.key.name, fontSize = 20.sp)
-                        Text("$ ${"%.2f".format(total)}", fontSize = 20.sp)
+                        Text(
+                            "$currencySymbol ${"%.2f".format(total)}",
+                            fontSize = 20.sp
+                        )
                     }
 
                     it.value.forEach { expense ->
                         ExpenseCard(
+                            currencySymbol,
                             expense,
                             onNavigateToDetail = onNavigateToDetail
                         )
@@ -249,7 +255,11 @@ fun ExpenseListSection(
 }
 
 @Composable
-fun ExpenseCard(expense: ExpenseModel, onNavigateToDetail: (Long?) -> Unit = {}) {
+fun ExpenseCard(
+    currencySymbol: String,
+    expense: ExpenseModel,
+    onNavigateToDetail: (Long?) -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -271,7 +281,10 @@ fun ExpenseCard(expense: ExpenseModel, onNavigateToDetail: (Long?) -> Unit = {})
                         .height(40.dp)
                         .padding(end = 10.dp)
                 )
-                Text("$ ${"%.2f".format(expense.amount)}", fontSize = 20.sp)
+                Text(
+                    "$currencySymbol ${"%.2f".format(expense.amount)}",
+                    fontSize = 20.sp
+                )
             }
         }
     }
@@ -322,6 +335,7 @@ fun TestPreview() {
                     )
                 ), key = { expense -> expense.id }) {
                     ExpenseCard(
+                        currencySymbol = "$",
                         it
                     )
                 }

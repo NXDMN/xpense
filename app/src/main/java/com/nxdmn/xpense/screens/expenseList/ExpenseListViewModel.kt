@@ -8,8 +8,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
+import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
+import com.nxdmn.xpense.helpers.CurrencyHelper
 import com.nxdmn.xpense.ui.components.ChartModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
 data class ExpenseListUiState(
+    val currencySymbol: String? = null,
     val viewMode: ViewMode = ViewMode.DAY,
     val totalExpenseList: List<ExpenseModel> = emptyList(),
     val dayExpenseList: List<ExpenseModel> = emptyList(),
@@ -38,7 +41,10 @@ enum class ViewMode(val title: String) {
     YEAR("Year")
 }
 
-class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewModel() {
+class ExpenseListViewModel(
+    repository: ExpenseRepository,
+    dataStore: UserPrefsDataStore
+) : ViewModel() {
     private val _viewMode = MutableStateFlow(ViewMode.DAY)
     private val _selectedDate = MutableStateFlow(LocalDate.now())
 
@@ -53,14 +59,17 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
         combine(
             repository.expenseListFlow,
             _viewMode,
-            _selectedDate
-        ) { expenses, viewMode, selectedDate ->
+            _selectedDate,
+            dataStore.currencyFlow,
+        ) { expenses, viewMode, selectedDate, currencyFlow ->
             val dayExpenseList = expenses.filter { e -> e.date == selectedDate }
             val monthExpenseList =
                 expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
             val yearExpenseList = expenses.filter { e -> e.date.year == selectedDate.year }
+            val currencySymbol = CurrencyHelper.getSymbol(currencyFlow)
 
             ExpenseListUiState(
+                currencySymbol = currencySymbol,
                 viewMode = viewMode,
                 totalExpenseList = expenses,
                 dayExpenseList = dayExpenseList,
@@ -107,7 +116,8 @@ class ExpenseListViewModel(private val repository: ExpenseRepository) : ViewMode
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val repo = (this[APPLICATION_KEY] as MainApplication).expenseRepository
-                ExpenseListViewModel(repo)
+                val ds = (this[APPLICATION_KEY] as MainApplication).userPrefsDataStore
+                ExpenseListViewModel(repo, ds)
             }
         }
     }

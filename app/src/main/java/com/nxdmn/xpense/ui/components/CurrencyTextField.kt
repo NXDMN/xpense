@@ -18,11 +18,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CurrencyTextField(amount: String, onValueChanged: (String) -> Unit){
+fun CurrencyTextField(currencyCode: String, amount: String, onValueChanged: (String) -> Unit) {
     TextField(
         value = amount,
         onValueChange = onValueChanged,
-        modifier = Modifier.padding(40.dp).width(IntrinsicSize.Min),
+        modifier = Modifier
+            .padding(40.dp)
+            .width(IntrinsicSize.Min),
         textStyle = MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Center),
         placeholder = {
             Text(
@@ -34,7 +36,7 @@ fun CurrencyTextField(amount: String, onValueChanged: (String) -> Unit){
         },
         prefix = {
             Text(
-                text = "SGD",
+                text = currencyCode,
                 modifier = Modifier.padding(end = 16.dp),
                 style = MaterialTheme.typography.headlineSmall
             )

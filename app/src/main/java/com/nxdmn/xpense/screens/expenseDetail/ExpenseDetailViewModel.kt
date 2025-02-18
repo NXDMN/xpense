@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
+import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 
 data class ExpenseDetailUiState(
     val isBusy: Boolean = true,
+    val currencyCode: String? = null,
     val expense: ExpenseModel,
     val categoryList: List<CategoryModel> = emptyList(),
     val isEdit: Boolean = false,
@@ -30,6 +32,7 @@ data class ExpenseDetailUiState(
 class ExpenseDetailViewModel(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
+    dataStore: UserPrefsDataStore,
     private val expenseId: Long?
 ) : ViewModel() {
     //TODO: make uistate to store real ui state value like amounr, date, image and use expenseModel only here
@@ -47,7 +50,10 @@ class ExpenseDetailViewModel(
     init {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(categoryList = categoryRepository.getAllCategories())
+                it.copy(
+                    currencyCode = dataStore.getCurrency().currencyCode,
+                    categoryList = categoryRepository.getAllCategories()
+                )
             }
 
             val expense: ExpenseModel? =
@@ -136,11 +142,13 @@ class ExpenseDetailViewModel(
                 val app = this[APPLICATION_KEY] as MainApplication
                 val expenseRepo = app.expenseRepository
                 val categoryRepo = app.categoryRepository
+                val ds = app.userPrefsDataStore
 
-                val expenseId = this[EXPENSE_ID_KEY] as Long?
+                val expenseId = this[EXPENSE_ID_KEY]
                 ExpenseDetailViewModel(
                     expenseRepository = expenseRepo,
                     categoryRepository = categoryRepo,
+                    dataStore = ds,
                     expenseId = expenseId,
                 )
             }

@@ -2,7 +2,6 @@ package com.nxdmn.xpense.data.dataStores
 
 import android.content.Context
 import android.icu.util.Currency
-import android.util.Log
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
@@ -22,7 +21,7 @@ private val Context.userPrefsDataStore: DataStore<UserPrefs> by dataStore(
 )
 
 class UserPrefsDataStore(val context: Context) {
-    val currencyCodeFlow: Flow<Currency> =
+    val currencyFlow: Flow<Currency> =
         context.userPrefsDataStore.data.map { Currency.getInstance(it.currencyCode) }
 
     suspend fun getCurrency(): Currency {

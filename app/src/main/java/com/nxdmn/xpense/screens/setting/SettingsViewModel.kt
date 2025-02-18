@@ -11,12 +11,12 @@ import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
+import com.nxdmn.xpense.helpers.CurrencyHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 data class SettingsUiState(
     val categoryList: List<CategoryModel> = emptyList(),
@@ -32,12 +32,6 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private val currencyLocaleMap: Map<Currency, Locale> = Locale.getAvailableLocales()
-        .mapNotNull { locale ->
-            Currency.getInstance(locale)?.let { it to locale }
-        }
-        .sortedBy { it.first.displayName }
-        .toMap()
     private lateinit var currency: Currency
 
     init {
@@ -45,8 +39,8 @@ class SettingsViewModel(
             currency = dataStore.getCurrency()
             _uiState.update {
                 it.copy(
-                    currencySymbolMap = getAllCurrencies(),
-                    currencySymbol = currency.getSymbol(currencyLocaleMap[currency])
+                    currencySymbolMap = CurrencyHelper.currencySymbolMap,
+                    currencySymbol = CurrencyHelper.getSymbol(currency)
                 )
             }
         }
@@ -65,12 +59,9 @@ class SettingsViewModel(
         }
     }
 
-    private fun getAllCurrencies(): Map<Currency, String> {
-        return currencyLocaleMap.mapValues { it.key.getSymbol(it.value) }
-    }
 
     fun updateCurrency(value: Currency) {
-        _uiState.update { it.copy(currencySymbol = value.getSymbol(currencyLocaleMap[value])) }
+        _uiState.update { it.copy(currencySymbol = CurrencyHelper.getSymbol(value)) }
         viewModelScope.launch {
             dataStore.setCurrency(value)
         }
