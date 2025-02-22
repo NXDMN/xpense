@@ -14,7 +14,6 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.toLocalDate
-import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +27,7 @@ data class ExpenseDetailUiState(
     val currencyCode: String = "",
     val amount: Double = 0.0,
     val date: LocalDate = LocalDate.now(),
-    val category: CategoryModel = CategoryModel(id = 3, name = "", icon = CategoryIcon.OTHERS),
+    val category: CategoryModel? = null,
     val remarks: String = "",
     val image: String = "",
     val categoryList: List<CategoryModel> = emptyList(),
@@ -73,12 +72,16 @@ class ExpenseDetailViewModel(
         }
     }
 
+    fun validate(): Boolean {
+        return _uiState.value.amount > 0.0 && _uiState.value.category != null
+    }
+
     fun saveExpense() {
         val expense = ExpenseModel(
             id = expenseId ?: 0,
             amount = _uiState.value.amount,
             date = _uiState.value.date,
-            category = _uiState.value.category,
+            category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
             image = _uiState.value.image
         )
@@ -96,7 +99,7 @@ class ExpenseDetailViewModel(
             id = expenseId ?: 0,
             amount = _uiState.value.amount,
             date = _uiState.value.date,
-            category = _uiState.value.category,
+            category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
             image = _uiState.value.image
         )

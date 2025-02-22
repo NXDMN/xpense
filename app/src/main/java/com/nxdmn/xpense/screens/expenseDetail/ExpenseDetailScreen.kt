@@ -166,7 +166,10 @@ fun ExpenseDetailScreen(
                     )
                 }
 
-                CategorySection(expenseDetailUiState.categoryList, expenseDetailUiState.category) {
+                CategorySection(
+                    expenseDetailUiState.categoryList,
+                    expenseDetailUiState.category!!
+                ) {
                     expenseDetailViewModel.updateCategory(it)
                 }
 
@@ -212,11 +215,15 @@ fun ExpenseDetailScreen(
                 }
 
                 appBarState.saveExpenseDetail = {
-                    if (expenseDetailUiState.amount > 0.0) {
+                    if (expenseDetailViewModel.validate()) {
                         expenseDetailViewModel.saveExpense()
                         onNavigateBack()
                     } else
-                        Toast.makeText(context, "Please Enter amount", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Please make sure amount and category is not empty",
+                            Toast.LENGTH_SHORT
+                        ).show()
                 }
 
                 Spacer(modifier = Modifier.padding(bottom = 30.dp))
