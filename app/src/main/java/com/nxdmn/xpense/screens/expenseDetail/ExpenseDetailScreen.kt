@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.models.CategoryModel
-import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.readImage
 import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
@@ -71,7 +70,6 @@ fun ExpenseDetailScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
-    val expense: ExpenseModel = expenseDetailUiState.expense
 
     var openDeleteDialog by remember { mutableStateOf(false) }
 
@@ -141,7 +139,7 @@ fun ExpenseDetailScreen(
                 )
 
                 CurrencyTextField(
-                    currencyCode = expenseDetailUiState.currencyCode ?: "",
+                    currencyCode = expenseDetailUiState.currencyCode,
                     amount = if (expenseDetailUiState.amount == 0.0) "" else "%.2f".format(
                         expenseDetailUiState.amount
                     ),
@@ -151,7 +149,7 @@ fun ExpenseDetailScreen(
                 )
 
                 val datePickerState =
-                    rememberDatePickerState(initialSelectedDateMillis = expense.date.toEpochMilli())
+                    rememberDatePickerState(initialSelectedDateMillis = expenseDetailUiState.date.toEpochMilli())
                 datePickerState.selectedDateMillis?.let {
                     expenseDetailViewModel.updateDate(it)
                 }
@@ -168,19 +166,15 @@ fun ExpenseDetailScreen(
                     )
                 }
 
-                var category by remember(expense.category) { mutableStateOf(expense.category) }
-                CategorySection(expenseDetailUiState.categoryList, category) {
-                    category = it
-                    expenseDetailViewModel.updateCategory(category)
+                CategorySection(expenseDetailUiState.categoryList, expenseDetailUiState.category) {
+                    expenseDetailViewModel.updateCategory(it)
                 }
 
-                var remarks by remember { mutableStateOf(expense.remarks) }
                 TextField(
-                    value = remarks,
+                    value = expenseDetailUiState.remarks,
                     modifier = Modifier.fillMaxWidth(),
                     onValueChange = {
-                        remarks = it
-                        expenseDetailViewModel.updateRemarks(remarks)
+                        expenseDetailViewModel.updateRemarks(it)
                     },
                     label = { Text("Remarks") }
                 )
@@ -190,7 +184,7 @@ fun ExpenseDetailScreen(
                     mutableStateOf(
                         readImageFromPath(
                             context,
-                            expense.image
+                            expenseDetailUiState.image
                         )
                     )
                 }
@@ -218,7 +212,7 @@ fun ExpenseDetailScreen(
                 }
 
                 appBarState.saveExpenseDetail = {
-                    if (expense.amount > 0.0) {
+                    if (expenseDetailUiState.amount > 0.0) {
                         expenseDetailViewModel.saveExpense()
                         onNavigateBack()
                     } else
