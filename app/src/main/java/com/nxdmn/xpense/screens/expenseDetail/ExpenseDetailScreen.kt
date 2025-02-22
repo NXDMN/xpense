@@ -140,20 +140,13 @@ fun ExpenseDetailScreen(
                     },
                 )
 
-                var amount by remember { mutableStateOf(if (expense.amount == 0.0) "" else expense.amount.toString()) }
                 CurrencyTextField(
                     currencyCode = expenseDetailUiState.currencyCode ?: "",
-                    amount = amount,
+                    amount = if (expenseDetailUiState.amount == 0.0) "" else "%.2f".format(
+                        expenseDetailUiState.amount
+                    ),
                     onValueChanged = {
-                        amount = if (it.isEmpty()) {
-                            it.trim()
-                        } else {
-                            when (it.toDoubleOrNull()) {
-                                null -> amount
-                                else -> it.trim()
-                            }
-                        }
-                        expenseDetailViewModel.updateAmount(amount)
+                        expenseDetailViewModel.updateAmount(it)
                     },
                 )
 

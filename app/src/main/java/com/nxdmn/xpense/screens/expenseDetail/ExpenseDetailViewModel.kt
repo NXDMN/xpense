@@ -23,10 +23,11 @@ import kotlinx.coroutines.launch
 
 data class ExpenseDetailUiState(
     val isBusy: Boolean = true,
+    val isEdit: Boolean = false,
     val currencyCode: String? = null,
+    val amount: Double = 0.0,
     val expense: ExpenseModel,
     val categoryList: List<CategoryModel> = emptyList(),
-    val isEdit: Boolean = false,
 )
 
 class ExpenseDetailViewModel(
@@ -88,9 +89,7 @@ class ExpenseDetailViewModel(
     fun updateAmount(amount: String) {
         _uiState.update {
             it.copy(
-                expense = it.expense.copy(
-                    amount = amount.toDoubleOrNull() ?: 0.0
-                )
+                amount = amount.toDoubleOrNull() ?: 0.0
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.ui.components
 
+import android.icu.text.DecimalFormat
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,17 +12,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import java.math.RoundingMode
 
 @Composable
 fun CurrencyTextField(currencyCode: String, amount: String, onValueChanged: (String) -> Unit) {
+    val df = remember { DecimalFormat("0.00").also { it.roundingMode = RoundingMode.DOWN.ordinal } }
     TextField(
         value = amount,
-        onValueChange = onValueChanged,
+        onValueChange = {
+            val newValue = when (it.toDoubleOrNull()) {
+                is Double -> df.format(it.toDoubleOrNull())
+                null -> amount
+                else -> ""
+            }
+            onValueChanged(newValue)
+        },
         modifier = Modifier
             .padding(40.dp)
             .width(IntrinsicSize.Min),
