@@ -26,6 +26,8 @@ data class ExpenseDetailUiState(
     val isEdit: Boolean = false,
     val currencyCode: String = "",
     val amount: Double = 0.0,
+    val isAmountError: Boolean = false,
+    val amountErrorText: String = "",
     val date: LocalDate = LocalDate.now(),
     val category: CategoryModel? = null,
     val remarks: String = "",
@@ -72,11 +74,23 @@ class ExpenseDetailViewModel(
         }
     }
 
-    fun validate(): Boolean {
-        return _uiState.value.amount > 0.0 && _uiState.value.category != null
+    private fun validate(): Boolean {
+        var valid = true
+        if (_uiState.value.amount <= 0.0) {
+            _uiState.update {
+                it.copy(
+                    isAmountError = true,
+                    amountErrorText = "Please enter amount"
+                )
+            }
+            valid = false
+        }
+        return valid
     }
 
-    fun saveExpense() {
+    fun saveExpense(): Boolean {
+        if (!validate()) return false
+
         val expense = ExpenseModel(
             id = expenseId ?: 0,
             amount = _uiState.value.amount,
@@ -92,6 +106,7 @@ class ExpenseDetailViewModel(
                 expenseRepository.createExpense(expense)
             }
         }
+        return true
     }
 
     fun deleteExpense() {

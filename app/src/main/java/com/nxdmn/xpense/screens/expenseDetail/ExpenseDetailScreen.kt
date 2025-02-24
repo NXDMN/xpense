@@ -1,6 +1,5 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -122,8 +120,8 @@ fun ExpenseDetailScreen(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(horizontal = 20.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -146,6 +144,8 @@ fun ExpenseDetailScreen(
                     onValueChanged = {
                         expenseDetailViewModel.updateAmount(it)
                     },
+                    isError = expenseDetailUiState.isAmountError,
+                    errorText = expenseDetailUiState.amountErrorText
                 )
 
                 val datePickerState =
@@ -215,18 +215,10 @@ fun ExpenseDetailScreen(
                 }
 
                 appBarState.saveExpenseDetail = {
-                    if (expenseDetailViewModel.validate()) {
-                        expenseDetailViewModel.saveExpense()
+                    if (expenseDetailViewModel.saveExpense()) {
                         onNavigateBack()
-                    } else
-                        Toast.makeText(
-                            context,
-                            "Please make sure amount and category is not empty",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    }
                 }
-
-                Spacer(modifier = Modifier.padding(bottom = 30.dp))
             }
         }
     }

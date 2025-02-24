@@ -17,11 +17,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.RoundingMode
 
 @Composable
-fun CurrencyTextField(currencyCode: String, amount: String, onValueChanged: (String) -> Unit) {
+fun CurrencyTextField(
+    currencyCode: String,
+    amount: String,
+    onValueChanged: (String) -> Unit,
+    isError: Boolean = false,
+    errorText: String = ""
+) {
     val df = remember { DecimalFormat("0.00").also { it.roundingMode = RoundingMode.DOWN.ordinal } }
     TextField(
         value = amount,
@@ -52,12 +59,28 @@ fun CurrencyTextField(currencyCode: String, amount: String, onValueChanged: (Str
                 style = MaterialTheme.typography.headlineSmall
             )
         },
+        supportingText = {
+            if (isError) Text(errorText)
+        },
+        isError = isError,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         shape = RoundedCornerShape(30.dp),
         colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent
         ),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CurrencyTextFieldPreview() {
+    CurrencyTextField(
+        currencyCode = "$",
+        amount = "10",
+        onValueChanged = {},
+        isError = true
     )
 }
