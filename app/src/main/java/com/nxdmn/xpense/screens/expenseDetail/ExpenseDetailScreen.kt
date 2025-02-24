@@ -1,6 +1,7 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -183,7 +185,7 @@ fun ExpenseDetailScreen(
                 )
 
                 val context = LocalContext.current
-                var imageBitmap by remember {
+                var imageBitmap by remember(expenseDetailUiState.image) {
                     mutableStateOf(
                         readImageFromPath(
                             context,
@@ -201,17 +203,26 @@ fun ExpenseDetailScreen(
                 }
 
                 val imagePicker =
-                    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                         if (uri != null) {
                             expenseDetailViewModel.updateImage(uri.toString())
                             imageBitmap =
                                 readImage(context.contentResolver, uri)
                         }
                     }
-                Button(onClick = {
-                    imagePicker.launch("image/*")
-                }) {
-                    Text("Add Image")
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = {
+                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }) {
+                        Text("Pick Image")
+                    }
+                    if (expenseDetailUiState.image.isNotEmpty())
+                        Button(onClick = {
+                            expenseDetailViewModel.updateImage("")
+                        }) {
+                            Text("Delete Image")
+                        }
                 }
 
                 appBarState.saveExpenseDetail = {
