@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val categoryList: List<CategoryModel> = emptyList(),
     val currencySymbolMap: Map<Currency, String> = emptyMap(),
-    val currencySymbol: String? = null
+    val currencySymbol: String? = null,
+    val favouriteCategory: CategoryModel? = null,
 )
 
 class SettingsViewModel(
@@ -37,10 +38,12 @@ class SettingsViewModel(
     init {
         viewModelScope.launch {
             currency = dataStore.getCurrency()
+            val favCatId = dataStore.getFavCategoryId()
             _uiState.update {
                 it.copy(
                     currencySymbolMap = CurrencyHelper.currencySymbolMap,
-                    currencySymbol = CurrencyHelper.getSymbol(currency)
+                    currencySymbol = CurrencyHelper.getSymbol(currency),
+                    favouriteCategory = it.categoryList.find { c -> c.id == favCatId }
                 )
             }
         }
@@ -64,6 +67,13 @@ class SettingsViewModel(
         _uiState.update { it.copy(currencySymbol = CurrencyHelper.getSymbol(value)) }
         viewModelScope.launch {
             dataStore.setCurrency(value)
+        }
+    }
+
+    fun updateFavouriteCategory(value: CategoryModel) {
+        _uiState.update { it.copy(favouriteCategory = value) }
+        viewModelScope.launch {
+            dataStore.setFavCategoryId(value.id)
         }
     }
 

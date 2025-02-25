@@ -30,7 +30,6 @@ class UserPrefsDataStore(val context: Context) {
         return Currency.getInstance(currencyCode)
     }
 
-
     suspend fun setCurrency(value: Currency) = context.userPrefsDataStore.updateData {
         it.toBuilder().setCurrencyCode(value.currencyCode).build()
     }
@@ -49,6 +48,17 @@ class UserPrefsDataStore(val context: Context) {
             it.locale.toBuilder().setLanguage(value.language).setCountry(value.country)
                 .build()
         it.toBuilder().setLocale(locale).build()
+    }
+
+    val favCategoryIdFlow: Flow<Long> =
+        context.userPrefsDataStore.data.map { it.favouriteCategoryId }
+
+    suspend fun getFavCategoryId(): Long {
+        return context.userPrefsDataStore.data.first().favouriteCategoryId
+    }
+
+    suspend fun setFavCategoryId(value: Long) = context.userPrefsDataStore.updateData {
+        it.toBuilder().setFavouriteCategoryId(value).build()
     }
 }
 

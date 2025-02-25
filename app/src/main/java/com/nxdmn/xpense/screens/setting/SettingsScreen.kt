@@ -6,8 +6,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,6 +28,7 @@ import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,7 +53,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -138,7 +135,6 @@ fun SettingsScreen(
                     )
                 },
                 onClick = { openDialog = true },
-                isBottom = true,
             )
 
             CurrencySelectionDialog(
@@ -148,6 +144,45 @@ fun SettingsScreen(
                 onCurrencySelected = {
                     settingsViewModel.updateCurrency(it)
                     openDialog = false
+                }
+            )
+
+            HorizontalDivider(color = Color.LightGray)
+
+            var openCategorySelectionDialog by remember { mutableStateOf(false) }
+
+            SettingsListItem(
+                title = "Favourite Category",
+                leading = {
+                    Icon(
+                        Icons.Filled.Favorite,
+                        contentDescription = "Favourite Category",
+                        modifier = Modifier.size(36.dp)
+                    )
+                },
+                trailing = {
+                    if (settingsUiState.favouriteCategory != null)
+                        IconButton(onClick = {
+                            openDialog = true
+                        }) {
+                            CircleBorderIcon(
+                                resId = settingsUiState.favouriteCategory!!.icon.resId,
+                                name = settingsUiState.favouriteCategory!!.name,
+                                color = settingsUiState.favouriteCategory!!.color
+                            )
+                        }
+                },
+                onClick = { openCategorySelectionDialog = true },
+                isBottom = true,
+            )
+
+            CategorySelectionDialog(
+                openDialog = openCategorySelectionDialog,
+                onDismiss = { openCategorySelectionDialog = false },
+                categoryList = settingsUiState.categoryList,
+                onCategorySelected = {
+                    settingsViewModel.updateFavouriteCategory(it)
+                    openCategorySelectionDialog = false
                 }
             )
         }
@@ -301,6 +336,54 @@ fun CurrencySelectionDialog(
                                 .padding(vertical = 20.dp),
                         ) {
                             Text("${it.displayName} - ${it.currencyCode} (${currencySymbolMap[it]})")
+                        }
+                    }
+                }
+            }
+        }
+}
+
+@Composable
+fun CategorySelectionDialog(
+    openDialog: Boolean,
+    onDismiss: () -> Unit,
+    categoryList: List<CategoryModel>,
+    onCategorySelected: (CategoryModel) -> Unit
+) {
+    if (openDialog)
+        Dialog(onDismissRequest = onDismiss) {
+            Surface(
+                modifier = Modifier.heightIn(max = 600.dp),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = AlertDialogDefaults.TonalElevation
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                ) {
+                    items(categoryList, key = { c -> c.id }) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    remember { MutableInteractionSource() },
+                                    indication = ripple(),
+                                    onClick = {
+                                        onCategorySelected(it)
+                                    }
+                                )
+                                .padding(vertical = 20.dp),
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircleBorderIcon(
+                                    resId = it.icon.resId,
+                                    name = it.name,
+                                    color = it.color
+                                )
+                                Text(it.name)
+                            }
                         }
                     }
                 }
