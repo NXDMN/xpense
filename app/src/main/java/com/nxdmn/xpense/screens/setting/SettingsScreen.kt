@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -127,12 +128,16 @@ fun SettingsScreen(
                     )
                 },
                 trailing = {
-                    Text(
-                        settingsUiState.currencySymbol ?: "",
-                        modifier = Modifier.height(24.dp),
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center,
-                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            settingsUiState.currencySymbol ?: "",
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 },
                 onClick = { openDialog = true },
             )
@@ -162,9 +167,12 @@ fun SettingsScreen(
                 },
                 trailing = {
                     if (settingsUiState.favouriteCategory != null)
-                        IconButton(onClick = {
-                            openDialog = true
-                        }) {
+                        IconButton(
+                            modifier = Modifier.height(36.dp),
+                            onClick = {
+                                openDialog = true
+                            }
+                        ) {
                             CircleBorderIcon(
                                 resId = settingsUiState.favouriteCategory!!.icon.resId,
                                 name = settingsUiState.favouriteCategory!!.name,
@@ -236,7 +244,7 @@ fun CategoryList(
         },
         trailing = {
             Row(
-                modifier = Modifier.height(24.dp),
+                modifier = Modifier.height(36.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
@@ -426,20 +434,21 @@ fun TestPreview() {
                 },
                 trailing = {
                     Row(
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(36.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = {}) {
                             Icon(Icons.Filled.Add, contentDescription = "Add Category")
                         }
                         Icon(
                             Icons.AutoMirrored.Sharp.KeyboardArrowRight,
                             contentDescription = "Right Arrow",
+                            modifier = Modifier.rotate(0f)
                         )
                     }
                 },
                 isTop = true,
-                onClick = { }
+                onClick = {}
             )
 
             HorizontalDivider(color = Color.LightGray)
@@ -456,14 +465,43 @@ fun TestPreview() {
                     )
                 },
                 trailing = {
-                    Text(
-                        "SGD",
-                        modifier = Modifier.height(24.dp),
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center,
-                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            "$",
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 },
                 onClick = { openDialog = true },
+            )
+
+            HorizontalDivider(color = Color.LightGray)
+
+            SettingsListItem(
+                title = "Favourite Category",
+                leading = {
+                    Icon(
+                        Icons.Filled.Favorite,
+                        contentDescription = "Favourite Category",
+                        modifier = Modifier.size(36.dp)
+                    )
+                },
+                trailing = {
+                    IconButton(
+                        modifier = Modifier.height(36.dp),
+                        onClick = { openDialog = true }
+                    ) {
+                        CircleBorderIcon(
+                            resId = R.drawable.moneytree_lunch,
+                            color = 0xFF81E2F0
+                        )
+                    }
+                },
+                onClick = { },
                 isBottom = true,
             )
         }
