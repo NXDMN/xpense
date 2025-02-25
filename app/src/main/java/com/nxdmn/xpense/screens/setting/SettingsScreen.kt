@@ -72,6 +72,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
+import com.nxdmn.xpense.ui.components.CircleBorderIcon
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -240,17 +241,10 @@ fun CategoryList(
                 SettingsListItem(
                     title = it.name,
                     leading = {
-                        Icon(
-                            painterResource(id = it.icon.resId),
-                            contentDescription = it.name,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .border(
-                                    1.dp, Color(it.color), CircleShape
-                                )
-                                .clip(CircleShape)
-                                .background(Color(it.color))
-                                .padding(5.dp)
+                        CircleBorderIcon(
+                            resId = it.icon.resId,
+                            name = it.name,
+                            color = it.color
                         )
                     },
                     trailing = {
