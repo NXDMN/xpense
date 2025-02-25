@@ -77,6 +77,13 @@ class SettingsViewModel(
         }
     }
 
+    fun removeFavouriteCategory() {
+        _uiState.update { it.copy(favouriteCategory = null) }
+        viewModelScope.launch {
+            dataStore.setFavCategoryId(null)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

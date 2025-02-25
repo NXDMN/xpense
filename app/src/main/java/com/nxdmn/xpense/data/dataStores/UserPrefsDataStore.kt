@@ -50,15 +50,20 @@ class UserPrefsDataStore(val context: Context) {
         it.toBuilder().setLocale(locale).build()
     }
 
-    val favCategoryIdFlow: Flow<Long> =
+    val favCategoryIdFlow: Flow<Long?> =
         context.userPrefsDataStore.data.map { it.favouriteCategoryId }
 
-    suspend fun getFavCategoryId(): Long {
-        return context.userPrefsDataStore.data.first().favouriteCategoryId
+    suspend fun getFavCategoryId(): Long? {
+        val data = context.userPrefsDataStore.data.first()
+        return if (data.hasFavouriteCategoryId()) data.favouriteCategoryId else null
     }
 
-    suspend fun setFavCategoryId(value: Long) = context.userPrefsDataStore.updateData {
-        it.toBuilder().setFavouriteCategoryId(value).build()
+    suspend fun setFavCategoryId(value: Long?) = context.userPrefsDataStore.updateData {
+        if (value != null) {
+            it.toBuilder().setFavouriteCategoryId(value).build()
+        } else {
+            it.toBuilder().clearFavouriteCategoryId().build()
+        }
     }
 }
 

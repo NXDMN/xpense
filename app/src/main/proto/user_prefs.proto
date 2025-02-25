@@ -13,5 +13,5 @@ message UserPrefs{
   string currencyCode = 1;
   Locale locale = 2;
 
-  int64 favouriteCategoryId = 3;
+  optional int64 favouriteCategoryId = 3;
 }

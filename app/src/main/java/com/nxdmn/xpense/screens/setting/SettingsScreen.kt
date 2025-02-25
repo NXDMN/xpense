@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -167,17 +168,29 @@ fun SettingsScreen(
                 },
                 trailing = {
                     if (settingsUiState.favouriteCategory != null)
-                        IconButton(
+                        Row(
                             modifier = Modifier.height(36.dp),
-                            onClick = {
-                                openDialog = true
-                            }
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CircleBorderIcon(
-                                resId = settingsUiState.favouriteCategory!!.icon.resId,
-                                name = settingsUiState.favouriteCategory!!.name,
-                                color = settingsUiState.favouriteCategory!!.color
-                            )
+                            IconButton(
+                                modifier = Modifier.size(24.dp),
+                                onClick = {
+                                    settingsViewModel.removeFavouriteCategory()
+                                }) {
+                                Icon(
+                                    Icons.Filled.Clear,
+                                    contentDescription = "Remove Favourite Category"
+                                )
+                            }
+                            IconButton(onClick = {
+                                openDialog = true
+                            }) {
+                                CircleBorderIcon(
+                                    resId = settingsUiState.favouriteCategory!!.icon.resId,
+                                    name = settingsUiState.favouriteCategory!!.name,
+                                    color = settingsUiState.favouriteCategory!!.color
+                                )
+                            }
                         }
                 },
                 onClick = { openCategorySelectionDialog = true },
