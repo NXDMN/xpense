@@ -38,20 +38,28 @@ class SettingsViewModel(
     init {
         viewModelScope.launch {
             currency = dataStore.getCurrency()
-            val favCatId = dataStore.getFavCategoryId()
             _uiState.update {
                 it.copy(
                     currencySymbolMap = CurrencyHelper.currencySymbolMap,
                     currencySymbol = CurrencyHelper.getSymbol(currency),
-                    favouriteCategory = it.categoryList.find { c -> c.id == favCatId }
                 )
             }
         }
     }
 
     suspend fun refreshCategoryList() {
+        val favCatId = dataStore.getFavCategoryId()
+        val categoryList = repository.getAllCategories(true).toMutableList()
+        val favCategory = categoryList.find { it.id == favCatId }
+        if (favCategory != null) {
+            categoryList.remove(favCategory)
+            categoryList.add(0, favCategory)
+        }
         _uiState.update {
-            it.copy(categoryList = repository.getAllCategories(true))
+            it.copy(
+                categoryList = categoryList,
+                favouriteCategory = favCategory
+            )
         }
     }
 
@@ -74,6 +82,7 @@ class SettingsViewModel(
         _uiState.update { it.copy(favouriteCategory = value) }
         viewModelScope.launch {
             dataStore.setFavCategoryId(value.id)
+            refreshCategoryList()
         }
     }
 
@@ -81,6 +90,7 @@ class SettingsViewModel(
         _uiState.update { it.copy(favouriteCategory = null) }
         viewModelScope.launch {
             dataStore.setFavCategoryId(null)
+            refreshCategoryList()
         }
     }
 

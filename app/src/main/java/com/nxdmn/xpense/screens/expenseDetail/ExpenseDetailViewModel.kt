@@ -46,10 +46,17 @@ class ExpenseDetailViewModel(
 
     init {
         viewModelScope.launch {
+            val favCatId = dataStore.getFavCategoryId()
+            val categoryList = categoryRepository.getAllCategories().toMutableList()
+            val favCategory = categoryList.find { it.id == favCatId }
+            if (favCategory != null) {
+                categoryList.remove(favCategory)
+                categoryList.add(0, favCategory)
+            }
             _uiState.update {
                 it.copy(
                     currencyCode = dataStore.getCurrency().currencyCode,
-                    categoryList = categoryRepository.getAllCategories()
+                    categoryList = categoryList
                 )
             }
 
