@@ -104,6 +104,8 @@ class ExpenseDetailViewModel(
                 expenseRepository.updateExpense(expense)
             } else {
                 expenseRepository.createExpense(expense)
+                // Only increase count when create
+                categoryRepository.updateCategory(_uiState.value.category!!.apply { count++ })
             }
         }
         return true

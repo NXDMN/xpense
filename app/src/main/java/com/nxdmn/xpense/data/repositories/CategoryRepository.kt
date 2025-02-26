@@ -27,7 +27,7 @@ class CategoryRepository(
             }
         }
 
-        return getAllCategoriesMutex.withLock { this.categoryList }
+        return getAllCategoriesMutex.withLock { this.categoryList.sortedByDescending { it.count } }
     }
 
     suspend fun getCategory(id: Long): CategoryModel? {
