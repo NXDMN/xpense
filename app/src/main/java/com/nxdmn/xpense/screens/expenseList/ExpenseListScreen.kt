@@ -113,11 +113,15 @@ fun ExpenseListScreen(
 
                 PieChart(
                     charts = expenseListUiState.charts,
-                    text = when (expenseListUiState.viewMode) {
-                        ViewMode.DAY -> "${expenseListUiState.currencySymbol}${expenseListUiState.dayExpenseAmount}"
-                        ViewMode.MONTH -> "${expenseListUiState.currencySymbol}${expenseListUiState.monthExpenseAmount}"
-                        ViewMode.YEAR -> "${expenseListUiState.currencySymbol}${expenseListUiState.yearExpenseAmount}"
-                    }
+                    text = "${expenseListUiState.currencySymbol}${
+                        "%.2f".format(
+                            when (expenseListUiState.viewMode) {
+                                ViewMode.DAY -> expenseListUiState.dayExpenseAmount
+                                ViewMode.MONTH -> expenseListUiState.monthExpenseAmount
+                                ViewMode.YEAR -> expenseListUiState.yearExpenseAmount
+                            }
+                        )
+                    }"
                 )
 
                 ExpenseListSection(
