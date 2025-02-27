@@ -26,7 +26,9 @@ data class ExpenseListUiState(
     val currencySymbol: String? = null,
     val viewMode: ViewMode = ViewMode.DAY,
     val totalExpenseList: List<ExpenseModel> = emptyList(),
+    val isGroupByCategory: Boolean = true,
     val expensesGroupedByCategory: Map<CategoryModel, List<ExpenseModel>> = emptyMap(),
+    val expensesGroupedByDate: Map<Any, List<ExpenseModel>> = emptyMap(),
     val dayExpenseList: List<ExpenseModel> = emptyList(),
     val dayExpenseAmount: Double = 0.0,
     val monthExpenseList: List<ExpenseModel> = emptyList(),
@@ -49,6 +51,7 @@ class ExpenseListViewModel(
 ) : ViewModel() {
     private val _viewMode = MutableStateFlow(ViewMode.DAY)
     private val _selectedDate = MutableStateFlow(LocalDate.now())
+    private val _isGroupByCategory = MutableStateFlow(true)
 
     val uiState: StateFlow<ExpenseListUiState> =
         combine(
@@ -56,7 +59,8 @@ class ExpenseListViewModel(
             _viewMode,
             _selectedDate,
             dataStore.currencyFlow,
-        ) { expenses, viewMode, selectedDate, currencyFlow ->
+            _isGroupByCategory,
+        ) { expenses, viewMode, selectedDate, currencyFlow, isGroupByCategory ->
             val dayExpenseList = expenses.filter { e -> e.date == selectedDate }
             val monthExpenseList =
                 expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
@@ -67,11 +71,17 @@ class ExpenseListViewModel(
                 currencySymbol = currencySymbol,
                 viewMode = viewMode,
                 totalExpenseList = expenses,
+                isGroupByCategory = isGroupByCategory,
                 expensesGroupedByCategory = when (viewMode) {
                     ViewMode.DAY -> dayExpenseList
                     ViewMode.MONTH -> monthExpenseList
                     ViewMode.YEAR -> yearExpenseList
                 }.groupBy { it.category },
+                expensesGroupedByDate = when (viewMode) {
+                    ViewMode.DAY -> mapOf(selectedDate to dayExpenseList)
+                    ViewMode.MONTH -> monthExpenseList.groupBy { it.date }
+                    ViewMode.YEAR -> yearExpenseList.groupBy { it.date.month }
+                },
                 dayExpenseList = dayExpenseList,
                 dayExpenseAmount = dayExpenseList.sumOf { e -> e.amount },
                 monthExpenseList = monthExpenseList,
@@ -99,6 +109,10 @@ class ExpenseListViewModel(
 
     fun updateViewMode(viewMode: ViewMode) {
         _viewMode.update { viewMode }
+    }
+
+    fun toggleIsGroupByCategory() {
+        _isGroupByCategory.update { !it }
     }
 
     private fun updateChart(expenseList: List<ExpenseModel>): List<ChartModel> =

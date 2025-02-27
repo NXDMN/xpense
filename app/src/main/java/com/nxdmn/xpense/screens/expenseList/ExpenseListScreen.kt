@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -56,10 +55,12 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.components.ChartModel
 import com.nxdmn.xpense.ui.components.MonthPicker
 import com.nxdmn.xpense.ui.components.PieChart
 import com.nxdmn.xpense.ui.components.YearPicker
 import java.time.LocalDate
+import java.time.Month
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,24 +112,49 @@ fun ExpenseListScreen(
                     onDateSelected = { expenseListViewModel.updateSelectedDate(it) },
                 )
 
-                PieChart(
-                    charts = expenseListUiState.charts,
-                    text = "${expenseListUiState.currencySymbol}${
-                        "%.2f".format(
-                            when (expenseListUiState.viewMode) {
-                                ViewMode.DAY -> expenseListUiState.dayExpenseAmount
-                                ViewMode.MONTH -> expenseListUiState.monthExpenseAmount
-                                ViewMode.YEAR -> expenseListUiState.yearExpenseAmount
-                            }
-                        )
-                    }"
-                )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth()
+                ) {
+                    PieChart(
+                        modifier = Modifier.align(Alignment.Center),
+                        charts = expenseListUiState.charts,
+                        text = "${expenseListUiState.currencySymbol}${
+                            "%.2f".format(
+                                when (expenseListUiState.viewMode) {
+                                    ViewMode.DAY -> expenseListUiState.dayExpenseAmount
+                                    ViewMode.MONTH -> expenseListUiState.monthExpenseAmount
+                                    ViewMode.YEAR -> expenseListUiState.yearExpenseAmount
+                                }
+                            )
+                        }"
+                    )
 
-                ExpenseListSection(
-                    currencySymbol = expenseListUiState.currencySymbol ?: "",
-                    expenseGroupedByCategory = expenseListUiState.expensesGroupedByCategory,
-                    onNavigateToDetail = onNavigateToDetail
-                )
+                    if (expenseListUiState.viewMode != ViewMode.DAY)
+                        TextButton(
+                            modifier = Modifier.align(Alignment.BottomStart),
+                            contentPadding = PaddingValues(horizontal = 10.dp),
+                            onClick = { expenseListViewModel.toggleIsGroupByCategory() }
+                        ) {
+                            Text("By ${if (expenseListUiState.isGroupByCategory) "Category" else "Date"}")
+                        }
+                }
+
+                if (expenseListUiState.viewMode != ViewMode.DAY && !expenseListUiState.isGroupByCategory) {
+                    ExpenseListSectionByDate(
+                        currencySymbol = expenseListUiState.currencySymbol ?: "",
+                        viewMode = expenseListUiState.viewMode,
+                        expensesGroupedByDate = expenseListUiState.expensesGroupedByDate,
+                        onNavigateToDetail = onNavigateToDetail
+                    )
+                } else {
+                    ExpenseListSectionByCategory(
+                        currencySymbol = expenseListUiState.currencySymbol ?: "",
+                        expensesGroupedByCategory = expenseListUiState.expensesGroupedByCategory,
+                        onNavigateToDetail = onNavigateToDetail
+                    )
+                }
             }
         }
     }
@@ -212,9 +238,9 @@ fun CalendarLabel(
 }
 
 @Composable
-fun ExpenseListSection(
+fun ExpenseListSectionByCategory(
     currencySymbol: String,
-    expenseGroupedByCategory: Map<CategoryModel, List<ExpenseModel>>,
+    expensesGroupedByCategory: Map<CategoryModel, List<ExpenseModel>>,
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
     Column(
@@ -224,7 +250,7 @@ fun ExpenseListSection(
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        expenseGroupedByCategory.forEach {
+        expensesGroupedByCategory.forEach {
             Card {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -239,6 +265,66 @@ fun ExpenseListSection(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(it.key.name, fontSize = 20.sp)
+                        Text(
+                            "$currencySymbol ${"%.2f".format(total)}",
+                            fontSize = 20.sp
+                        )
+                    }
+
+                    it.value.forEach { expense ->
+                        ExpenseCard(
+                            currencySymbol,
+                            expense,
+                            onNavigateToDetail = onNavigateToDetail
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpenseListSectionByDate(
+    currencySymbol: String,
+    viewMode: ViewMode,
+    expensesGroupedByDate: Map<Any, List<ExpenseModel>>,
+    onNavigateToDetail: (Long?) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 10.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        var sortedGroup: Map<Any, List<ExpenseModel>> = expensesGroupedByDate
+        if (viewMode == ViewMode.MONTH) {
+            sortedGroup =
+                expensesGroupedByDate.toSortedMap(compareByDescending { date -> date as LocalDate })
+        }
+
+        sortedGroup.forEach {
+            val groupName = when (it.key) {
+                is LocalDate -> (it.key as LocalDate).toString()
+                is Month -> (it.key as Month).name
+                else -> ""
+            }
+
+            Card {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    val total by remember(it.value) {
+                        mutableDoubleStateOf(it.value.fold(0.0) { acc, element -> acc + element.amount })
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(groupName, fontSize = 20.sp)
                         Text(
                             "$currencySymbol ${"%.2f".format(total)}",
                             fontSize = 20.sp
@@ -303,48 +389,70 @@ fun TestPreview() {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
                 title = {
                     Text("Expenses")
                 },
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            SecondaryTabRow(selectedTabIndex = 0) {
-                Tab(text = { Text("Day") }, selected = true, onClick = { })
-                Tab(text = { Text("Month") }, selected = true, onClick = { })
-                Tab(text = { Text("Year") }, selected = true, onClick = { })
-            }
-
-            var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-
-            CalendarLabel(
-                viewMode = ViewMode.DAY,
-                selectedDate = selectedDate,
-                onDateSelected = { selectedDate = it })
-
-            LazyColumn(
-                contentPadding = PaddingValues(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(listOf(
-                    ExpenseModel(
-                        amount = 10.0,
-                        category = CategoryModel(name = "Food", icon = CategoryIcon.FASTFOOD)
-                    )
-                ), key = { expense -> expense.id }) {
-                    ExpenseCard(
-                        currencySymbol = "$",
-                        it
+        Column(modifier = Modifier.padding(innerPadding)) {
+            val selectedmode = ViewMode.MONTH
+            SecondaryTabRow(selectedTabIndex = 2) {
+                ViewMode.entries.forEach { mode ->
+                    Tab(
+                        text = { Text(mode.title) },
+                        selected = mode == selectedmode,
+                        onClick = {},
                     )
                 }
             }
+
+            Column(
+                modifier = Modifier
+                    .padding(top = 20.dp)
+                    .fillMaxSize()
+                    .background(color = MaterialTheme.colorScheme.background),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CalendarLabel(
+                    viewMode = ViewMode.MONTH,
+                    selectedDate = LocalDate.now(),
+                    onDateSelected = { },
+                )
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth()
+                ) {
+                    PieChart(
+                        modifier = Modifier.align(Alignment.Center),
+                        charts = listOf(ChartModel(10f, Color.Red)),
+                        text = "$10.00"
+                    )
+
+                    TextButton(
+                        modifier = Modifier.align(Alignment.BottomStart),
+                        contentPadding = PaddingValues(horizontal = 10.dp),
+                        onClick = {}
+                    ) { Text("By Category") }
+                }
+                val cat =
+                    CategoryModel(name = "Food", icon = CategoryIcon.LUNCH, color = 0xFF1AfEC1)
+                ExpenseListSectionByCategory(
+                    currencySymbol = "$",
+                    expensesGroupedByCategory = mapOf(
+                        cat to listOf(
+                            ExpenseModel(amount = 10.0, category = cat)
+                        )
+                    ),
+                    onNavigateToDetail = {}
+                )
+            }
         }
     }
-
 }
