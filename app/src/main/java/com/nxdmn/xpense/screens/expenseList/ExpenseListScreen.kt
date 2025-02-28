@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -132,8 +134,11 @@ fun ExpenseListScreen(
                     )
 
                     if (expenseListUiState.viewMode != ViewMode.DAY)
-                        TextButton(
+                        Button(
                             modifier = Modifier.align(Alignment.BottomStart),
+                            colors = ButtonDefaults.buttonColors().copy(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            ),
                             contentPadding = PaddingValues(horizontal = 10.dp),
                             onClick = { expenseListViewModel.toggleIsGroupByCategory() }
                         ) {
