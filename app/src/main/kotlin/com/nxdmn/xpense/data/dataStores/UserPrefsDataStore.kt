@@ -22,7 +22,11 @@ private val Context.userPrefsDataStore: DataStore<UserPrefs> by dataStore(
 
 class UserPrefsDataStore(val context: Context) {
     val currencyFlow: Flow<Currency> =
-        context.userPrefsDataStore.data.map { Currency.getInstance(it.currencyCode) }
+        context.userPrefsDataStore.data.map {
+            if (it.currencyCode.isNullOrEmpty())
+                Currency.getInstance(getLocale())
+            else Currency.getInstance(it.currencyCode)
+        }
 
     suspend fun getCurrency(): Currency {
         val currencyCode = context.userPrefsDataStore.data.first().currencyCode
