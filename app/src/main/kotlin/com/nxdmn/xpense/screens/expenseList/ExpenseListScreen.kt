@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -122,7 +121,7 @@ fun ExpenseListScreen(
                     PieChart(
                         modifier = Modifier.align(Alignment.Center),
                         charts = expenseListUiState.charts,
-                        text = "${expenseListUiState.currencySymbol}${
+                        text = "${expenseListUiState.currencySymbol ?: ""}${
                             "%.2f".format(
                                 when (expenseListUiState.viewMode) {
                                     ViewMode.DAY -> expenseListUiState.dayExpenseAmount
