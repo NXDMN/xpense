@@ -136,9 +136,6 @@ fun ExpenseListScreen(
                     if (expenseListUiState.viewMode != ViewMode.DAY)
                         Button(
                             modifier = Modifier.align(Alignment.BottomStart),
-                            colors = ButtonDefaults.buttonColors().copy(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
                             contentPadding = PaddingValues(horizontal = 10.dp),
                             onClick = { expenseListViewModel.toggleIsGroupByCategory() }
                         ) {

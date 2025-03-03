@@ -59,7 +59,6 @@ private fun XpenseApp() {
             contentWindowInsets = WindowInsets(0.dp),
             bottomBar = {
                 BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
                     actions = {
                         IconButton(
                             enabled = appBarState.currentScreen != Route.ExpenseList,
@@ -80,7 +79,6 @@ private fun XpenseApp() {
                     floatingActionButton = {
                         if (appBarState.currentScreen == Route.ExpenseDetail) {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 onClick = {
                                     appBarState.saveExpenseDetail?.let { it() }
                                 }
@@ -92,7 +90,6 @@ private fun XpenseApp() {
                             }
                         } else {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 onClick = {
                                     navController.navigateToExpenseDetail()
                                 }
