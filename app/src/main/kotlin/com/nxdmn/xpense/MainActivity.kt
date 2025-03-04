@@ -15,7 +15,6 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -24,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -77,7 +76,7 @@ private fun XpenseApp() {
                         }
                     },
                     floatingActionButton = {
-                        if (appBarState.currentScreen == Route.ExpenseDetail) {
+                        if (appBarState.currentScreen == Route.ExpenseDetail()) {
                             FloatingActionButton(
                                 onClick = {
                                     appBarState.saveExpenseDetail?.let { it() }
@@ -118,17 +117,8 @@ class AppBarState(private val navController: NavHostController) {
 
     val currentScreen
         @Composable get() = routes.find { route ->
-            currentDestination?.hierarchy?.any {
-                var routeStr = route.toString()
-                if (routeStr.matches("""(\w+(\.\w+)+)\$\w+\$\w+@[0-9a-f]+""".toRegex())) {
-                    routeStr = routeStr.substring(routeStr.indexOfFirst { c -> c == '$' } + 1,
-                        routeStr.indexOfLast { c -> c == '$' })
-                }
-
-                it.route?.contains(routeStr) == true
-            } == true
-        }
-            ?: Route.ExpenseList
+            currentDestination?.hasRoute(route::class) == true
+        } ?: Route.ExpenseList
 
     var saveExpenseDetail: (() -> Unit)? = null
 }
