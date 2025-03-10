@@ -33,12 +33,18 @@ fun CurrencyTextField(
     TextField(
         value = amount,
         onValueChange = {
-            val newValue = when (it.toDoubleOrNull()) {
-                is Double -> df.format(it.toDoubleOrNull())
-                null -> amount
-                else -> ""
+            // Prevent the case when the cursor after '.' and backspace to delete '.',
+            // like 98.76 will become 9876.00
+            if (amount.contains('.') && !it.contains('.')) {
+                onValueChanged(amount)
+            } else {
+                val newValue = when (it.toDoubleOrNull()) {
+                    is Double -> df.format(it.toDoubleOrNull())
+                    null -> amount
+                    else -> ""
+                }
+                onValueChanged(newValue)
             }
-            onValueChanged(newValue)
         },
         modifier = Modifier
             .padding(40.dp)
