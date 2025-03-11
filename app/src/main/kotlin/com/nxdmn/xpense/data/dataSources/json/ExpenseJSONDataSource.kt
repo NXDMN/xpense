@@ -8,7 +8,6 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.dataSources.ExpenseDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Random
 

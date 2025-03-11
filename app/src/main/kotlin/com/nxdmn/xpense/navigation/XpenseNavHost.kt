@@ -29,14 +29,14 @@ fun XpenseNavHost(
     modifier: Modifier,
     appBarState: AppBarState,
 ) {
-    navController.addOnDestinationChangedListener { controller, _, _ ->
-        val routes = controller
-            .currentBackStack.value
-            .map { it.destination.route }
-            .joinToString(", ")
-
-        Log.d("BackStackLog", "BackStack: $routes")
-    }
+//    navController.addOnDestinationChangedListener { controller, _, _ ->
+//        val routes = controller
+//            .currentBackStack.value
+//            .map { it.destination.route }
+//            .joinToString(", ")
+//
+//        Log.d("BackStackLog", "BackStack: $routes")
+//    }
     NavHost(
         navController = navController,
         startDestination = Route.ExpenseList,
