@@ -49,6 +49,8 @@ class ExpenseListViewModel(
     repository: ExpenseRepository,
     dataStore: UserPrefsDataStore
 ) : ViewModel() {
+    private var today: LocalDate = LocalDate.now()
+
     private val _viewMode = MutableStateFlow(ViewMode.DAY)
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     private val _isGroupByCategory = MutableStateFlow(true)
@@ -105,6 +107,16 @@ class ExpenseListViewModel(
 
     fun updateSelectedDate(selectedDate: LocalDate) {
         _selectedDate.update { selectedDate }
+    }
+
+    fun recordToday() {
+        today = LocalDate.now()
+    }
+
+    fun checkToday() {
+        if (today != LocalDate.now()) {
+            updateSelectedDate(LocalDate.now())
+        }
     }
 
     fun updateViewMode(viewMode: ViewMode) {
