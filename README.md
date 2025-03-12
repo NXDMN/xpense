@@ -1,3 +1,5 @@
+# Xpense
+
 This project is built using Android Jetpack Compose with Kotlin, following the Android recommended
 architecture for a
 modern and scalable app structure. The app uses Room Database, a local storage solution, to
