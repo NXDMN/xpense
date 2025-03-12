@@ -109,7 +109,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.vico.compose.m3)
     implementation(libs.androidx.datastore)
     implementation(libs.protobuf.kotlin.lite)
     ksp(libs.androidx.room.compiler)
