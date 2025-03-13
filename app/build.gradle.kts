@@ -28,7 +28,7 @@ android {
         applicationId = "com.nxdmn.xpense"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
+        versionCode = 7
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
