@@ -1,3 +1,7 @@
+![Xpense](store-listing/FeatureGraphic.png "Xpense")
+
+<a href="https://play.google.com/store/apps/details?id=com.nxdmn.xpense"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="70"></a>
+
 # Xpense
 
 This project is built using Android Jetpack Compose with Kotlin, following the Android recommended
