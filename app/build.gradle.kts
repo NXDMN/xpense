@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -22,12 +23,12 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.nxdmn.xpense"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nxdmn.xpense"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 13
         versionName = "1.0"
 
@@ -79,8 +80,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
     buildFeatures {
         compose = true
