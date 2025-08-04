@@ -3,6 +3,7 @@ package com.nxdmn.xpense.screens.categoryDetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -60,6 +62,8 @@ fun CategoryDetailScreen(
 
     var openDeleteDialog by remember { mutableStateOf(false) }
 
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,7 +72,10 @@ fun CategoryDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = onNavigateBack,
+                        onClick = {
+                            focusManager.clearFocus()
+                            onNavigateBack()
+                        },
                         colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                     ) {
                         Icon(
@@ -113,6 +120,11 @@ fun CategoryDetailScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
@@ -129,8 +141,6 @@ fun CategoryDetailScreen(
                     onNavigateBack()
                 },
             )
-
-            val focusManager = LocalFocusManager.current
 
             TextField(
                 value = categoryDetailUiState.name ?: "",
