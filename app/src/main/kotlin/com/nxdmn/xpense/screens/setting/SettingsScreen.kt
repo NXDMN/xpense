@@ -492,6 +492,15 @@ fun TestPreview() {
                 onClick = { openDialog = true },
             )
 
+            CurrencySelectionDialog(
+                openDialog = openDialog,
+                onDismiss = { openDialog = false },
+                currencySymbolMap = mapOf(),
+                onCurrencySelected = {
+                    openDialog = false
+                }
+            )
+
             HorizontalDivider(color = Color.LightGray)
 
             SettingsListItem(
