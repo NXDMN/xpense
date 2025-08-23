@@ -31,7 +31,7 @@ data class ExpenseDetailUiState(
     val date: LocalDate = LocalDate.now(),
     val category: CategoryModel? = null,
     val remarks: String = "",
-    val image: String = "",
+    val image: List<String> = emptyList(),
     val categoryList: List<CategoryModel> = emptyList(),
 )
 
@@ -70,7 +70,7 @@ class ExpenseDetailViewModel(
                         date = expense.date,
                         category = expense.category,
                         remarks = expense.remarks,
-                        image = expense.image,
+                        //image = expense.image,
                         isEdit = true
                     )
                 }
@@ -104,7 +104,7 @@ class ExpenseDetailViewModel(
             date = _uiState.value.date,
             category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
-            image = _uiState.value.image
+            //image = _uiState.value.image
         )
         viewModelScope.launch {
             if (_uiState.value.isEdit) {
@@ -125,7 +125,7 @@ class ExpenseDetailViewModel(
             date = _uiState.value.date,
             category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
-            image = _uiState.value.image
+            //image = _uiState.value.image
         )
         viewModelScope.launch {
             expenseRepository.deleteExpense(expense)
@@ -157,9 +157,9 @@ class ExpenseDetailViewModel(
     }
 
     fun updateImage(image: String) {
-        _uiState.update {
-            it.copy(image = image)
-        }
+//        _uiState.update {
+//            it.copy(image = image)
+//        }
     }
 
     companion object {

@@ -3,7 +3,6 @@ package com.nxdmn.xpense.screens.expenseDetail
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -41,13 +39,14 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -64,6 +63,7 @@ import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
+import com.nxdmn.xpense.ui.components.PhotoGrid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +72,8 @@ fun ExpenseDetailScreen(
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory),
     onNavigateBack: () -> Unit = {}
 ) {
+    val MAX_PHOTOS = 4
+
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
 
     var openDeleteDialog by remember { mutableStateOf(false) }
@@ -198,31 +200,41 @@ fun ExpenseDetailScreen(
                 )
 
                 val context = LocalContext.current
-                var imageBitmap by remember(expenseDetailUiState.image) {
-                    mutableStateOf(
-                        readImageFromPath(
-                            context,
-                            expenseDetailUiState.image
-                        )
-                    )
-                }
-                imageBitmap?.let {
-                    it.prepareToDraw()
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(300.dp)
-                    )
-                }
-
-                val imagePicker =
-                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        if (uri != null) {
-                            expenseDetailViewModel.updateImage(uri.toString())
-                            imageBitmap =
-                                readImage(context.contentResolver, uri)
+                val imageBitmaps = remember(expenseDetailUiState.image) {
+                    mutableStateListOf<ImageBitmap>().apply {
+                        expenseDetailUiState.image.map {
+                            readImageFromPath(
+                                context,
+                                it
+                            )
                         }
                     }
+                }
+
+                PhotoGrid(imageBitmaps = imageBitmaps)
+
+                val allowPhotosNumber = MAX_PHOTOS - imageBitmaps.size
+
+                val imagePicker = if (allowPhotosNumber > 1) {
+                    rememberLauncherForActivityResult(
+                        ActivityResultContracts.PickMultipleVisualMedia(
+                            MAX_PHOTOS - imageBitmaps.size
+                        )
+                    ) { uris ->
+                        if (uris.isNotEmpty()) {
+                            uris.forEach {
+                                //expenseDetailViewModel.updateImage(it.toString())
+                                imageBitmaps.add(readImage(context.contentResolver, it)!!)
+                            }
+                        }
+                    }
+                } else {
+                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                        if (uri != null) {
+                            imageBitmaps.add(readImage(context.contentResolver, uri)!!)
+                        }
+                    }
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(onClick = {
@@ -367,6 +379,8 @@ fun TestPreview() {
             Button(onClick = {}) {
                 Text("Add")
             }
+
+            PhotoGrid(imageBitmaps = listOf())
         }
     }
 }
