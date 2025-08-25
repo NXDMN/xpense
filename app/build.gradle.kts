@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.room)
 }
 
 // Create a variable called keystorePropertiesFile, and initialize it to your
@@ -96,6 +97,11 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // For Room database
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
 }
 
 dependencies {
@@ -142,8 +148,4 @@ protobuf {
             }
         }
     }
-}
-
-ksp {
-    arg("room.schemaLocation", "${projectDir}/schemas")
 }
