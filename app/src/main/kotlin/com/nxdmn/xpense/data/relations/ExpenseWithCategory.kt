@@ -24,5 +24,5 @@ fun ExpenseWithCategory.asModel() = ExpenseModel(
     date = expense.date,
     category = category.asModel(),
     remarks = expense.remarks,
-    image = expense.image,
+    images = expense.images,
 )

@@ -1,6 +1,7 @@
 package com.nxdmn.xpense.data.models
 
 import androidx.room.*
+import com.nxdmn.xpense.data.converters.ListStringConverters
 import com.nxdmn.xpense.data.converters.LocalDateConverters
 import com.nxdmn.xpense.data.converters.LocalDateSerializer
 import kotlinx.serialization.Serializable
@@ -14,10 +15,10 @@ data class ExpenseModel(
     var date: LocalDate = LocalDate.now(),
     var category: CategoryModel,
     var remarks: String = "",
-    var image: String = ""
+    var images: List<String> = emptyList()
 )
 
-@TypeConverters(LocalDateConverters::class)
+@TypeConverters(LocalDateConverters::class, ListStringConverters::class)
 @Entity(
     foreignKeys = [
         ForeignKey(
@@ -36,7 +37,7 @@ data class ExpenseEntity(
     var date: LocalDate = LocalDate.now(),
     var categoryId: Long,
     var remarks: String = "",
-    var image: String = ""
+    var images: List<String> = emptyList()
 )
 
 
@@ -46,7 +47,7 @@ fun ExpenseModel.asEntity() = ExpenseEntity(
     date = date,
     categoryId = category.id,
     remarks = remarks,
-    image = image,
+    images = images,
 )
 
 fun ExpenseEntity.asModel(category: CategoryModel) = ExpenseModel(
@@ -55,5 +56,5 @@ fun ExpenseEntity.asModel(category: CategoryModel) = ExpenseModel(
     date = date,
     category = category,
     remarks = remarks,
-    image = image,
+    images = images,
 )

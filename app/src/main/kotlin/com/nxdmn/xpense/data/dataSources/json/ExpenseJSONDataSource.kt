@@ -43,7 +43,7 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
             date = expense.date
             category = expense.category
             remarks = expense.remarks
-            image = expense.image
+            images = expense.images
         }
         serialize()
     }
