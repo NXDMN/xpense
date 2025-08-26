@@ -1,8 +1,8 @@
 package com.nxdmn.xpense.data.models
 
 import androidx.room.*
-import com.nxdmn.xpense.helpers.LocalDateConverters
-import com.nxdmn.xpense.helpers.LocalDateSerializer
+import com.nxdmn.xpense.data.converters.LocalDateConverters
+import com.nxdmn.xpense.data.converters.LocalDateSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 

@@ -3,8 +3,8 @@ package com.nxdmn.xpense.data.models
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.nxdmn.xpense.helpers.CategoryIconConverters
-import com.nxdmn.xpense.helpers.EnumSerializer
+import com.nxdmn.xpense.data.converters.CategoryIconConverters
+import com.nxdmn.xpense.data.converters.EnumSerializer
 import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.serialization.Serializable
 

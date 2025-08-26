@@ -1,4 +1,4 @@
-package com.nxdmn.xpense.helpers
+package com.nxdmn.xpense.data.converters
 
 import androidx.room.TypeConverter
 import com.nxdmn.xpense.ui.CategoryIcon
