@@ -33,5 +33,10 @@ abstract class AppDatabase : RoomDatabase() {
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE ExpenseEntity RENAME COLUMN image TO images")
+        db.execSQL(
+            """
+            UPDATE ExpenseEntity SET images = '["' || images || '"]'
+            """.trimIndent()
+        )
     }
 }
