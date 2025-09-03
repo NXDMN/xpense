@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+const val MAX_PHOTOS = 4
+
 data class ExpenseDetailUiState(
     val isBusy: Boolean = true,
     val isEdit: Boolean = false,
@@ -31,9 +33,12 @@ data class ExpenseDetailUiState(
     val date: LocalDate = LocalDate.now(),
     val category: CategoryModel? = null,
     val remarks: String = "",
-    val image: List<String> = emptyList(),
+    val images: List<String> = emptyList(),
     val categoryList: List<CategoryModel> = emptyList(),
-)
+) {
+    val allowImages: Int
+        get() = MAX_PHOTOS - images.size
+}
 
 class ExpenseDetailViewModel(
     private val expenseRepository: ExpenseRepository,
@@ -70,7 +75,7 @@ class ExpenseDetailViewModel(
                         date = expense.date,
                         category = expense.category,
                         remarks = expense.remarks,
-                        //image = expense.image,
+                        images = expense.images,
                         isEdit = true
                     )
                 }
@@ -104,7 +109,7 @@ class ExpenseDetailViewModel(
             date = _uiState.value.date,
             category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
-            //image = _uiState.value.image
+            images = _uiState.value.images
         )
         viewModelScope.launch {
             if (_uiState.value.isEdit) {
@@ -125,7 +130,7 @@ class ExpenseDetailViewModel(
             date = _uiState.value.date,
             category = _uiState.value.category!!,
             remarks = _uiState.value.remarks,
-            //image = _uiState.value.image
+            images = _uiState.value.images
         )
         viewModelScope.launch {
             expenseRepository.deleteExpense(expense)
@@ -156,10 +161,16 @@ class ExpenseDetailViewModel(
         }
     }
 
-    fun updateImage(image: String) {
-//        _uiState.update {
-//            it.copy(image = image)
-//        }
+    fun addImage(image: String) {
+        _uiState.update {
+            it.copy(images = _uiState.value.images + image)
+        }
+    }
+
+    fun removeImages(images: List<String>) {
+        _uiState.update {
+            it.copy(images = _uiState.value.images - images)
+        }
     }
 
     companion object {

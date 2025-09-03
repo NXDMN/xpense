@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,14 +40,12 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -56,8 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.models.CategoryModel
-import com.nxdmn.xpense.helpers.readImage
-import com.nxdmn.xpense.helpers.readImageFromPath
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.CategoryLabel
@@ -72,8 +69,6 @@ fun ExpenseDetailScreen(
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory),
     onNavigateBack: () -> Unit = {}
 ) {
-    val MAX_PHOTOS = 4
-
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
 
     var openDeleteDialog by remember { mutableStateOf(false) }
@@ -199,39 +194,39 @@ fun ExpenseDetailScreen(
                     label = { Text("Remarks") }
                 )
 
+                var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
+
+                PhotoGrid(
+                    imagePaths = expenseDetailUiState.images,
+                    onSelectionChanged = {
+                        selectedImages = it
+                    })
+
                 val context = LocalContext.current
-                val imageBitmaps = remember(expenseDetailUiState.image) {
-                    mutableStateListOf<ImageBitmap>().apply {
-                        expenseDetailUiState.image.map {
-                            readImageFromPath(
-                                context,
-                                it
-                            )
-                        }
-                    }
-                }
-
-                PhotoGrid(imageBitmaps = imageBitmaps)
-
-                val allowPhotosNumber = MAX_PHOTOS - imageBitmaps.size
-
-                val imagePicker = if (allowPhotosNumber > 1) {
+                val imagePicker = if (expenseDetailUiState.allowImages > 1) {
                     rememberLauncherForActivityResult(
                         ActivityResultContracts.PickMultipleVisualMedia(
-                            MAX_PHOTOS - imageBitmaps.size
+                            expenseDetailUiState.allowImages
                         )
                     ) { uris ->
                         if (uris.isNotEmpty()) {
                             uris.forEach {
-                                //expenseDetailViewModel.updateImage(it.toString())
-                                imageBitmaps.add(readImage(context.contentResolver, it)!!)
+                                context.contentResolver.takePersistableUriPermission(
+                                    it,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                                expenseDetailViewModel.addImage(it.toString())
                             }
                         }
                     }
                 } else {
                     rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                         if (uri != null) {
-                            imageBitmaps.add(readImage(context.contentResolver, uri)!!)
+                            context.contentResolver.takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                            expenseDetailViewModel.addImage(uri.toString())
                         }
                     }
                 }
@@ -242,12 +237,11 @@ fun ExpenseDetailScreen(
                     }) {
                         Text("Pick Image")
                     }
-                    if (expenseDetailUiState.image.isNotEmpty())
-                        Button(onClick = {
-                            expenseDetailViewModel.updateImage("")
-                        }) {
-                            Text("Delete Image")
-                        }
+                    Button(onClick = {
+                        expenseDetailViewModel.removeImages(selectedImages)
+                    }) {
+                        Text("Delete Image")
+                    }
                 }
 
                 appBarState.saveExpenseDetail = {
@@ -380,7 +374,7 @@ fun TestPreview() {
                 Text("Add")
             }
 
-            PhotoGrid(imageBitmaps = listOf())
+            PhotoGrid(imagePaths = listOf())
         }
     }
 }

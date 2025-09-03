@@ -22,27 +22,31 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.nxdmn.xpense.R
+import com.nxdmn.xpense.helpers.readImageFromPath
 
 @Composable
-fun PhotoGrid(imageBitmaps: List<ImageBitmap>) {
+fun PhotoGrid(
+    imagePaths: List<String>,
+    onSelectionChanged: (List<String>) -> Unit = { }
+) {
     var inSelectionMode by remember { mutableStateOf(false) }
-    val selectedList = remember { mutableStateListOf<ImageBitmap>() }
+    val selectedItems = remember { mutableStateSetOf<String>() }
 
     Column(
         modifier = Modifier.padding(20.dp),
@@ -53,24 +57,27 @@ fun PhotoGrid(imageBitmaps: List<ImageBitmap>) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
             {
                 for (j in 0..1) {
-                    val imageBitmap = if (i + j < imageBitmaps.size) imageBitmaps[i + j] else null
-                    val isSelected = selectedList.contains(imageBitmap)
+                    val imagePath = if (i + j < imagePaths.size) imagePaths[i + j] else null
+                    val isSelected = selectedItems.contains(imagePath)
                     ImageItem(
-                        imageBitmap = imageBitmap,
+                        imagePath = imagePath,
                         inSelectionMode = inSelectionMode,
                         isSelected = isSelected,
                         onLongPress = {
                             inSelectionMode = true
-                            if (!isSelected)
-                                selectedList.add(imageBitmap!!)
+                            if (!isSelected) {
+                                selectedItems.add(imagePath!!)
+                                onSelectionChanged(selectedItems.toList())
+                            }
                         },
                         onTap = {
                             if (!isSelected)
-                                selectedList.add(imageBitmap!!)
+                                selectedItems.add(imagePath!!)
                             else {
-                                selectedList.remove(imageBitmap)
-                                inSelectionMode = selectedList.isNotEmpty()
+                                selectedItems.remove(imagePath)
+                                inSelectionMode = selectedItems.isNotEmpty()
                             }
+                            onSelectionChanged(selectedItems.toList())
                         })
                 }
             }
@@ -80,7 +87,7 @@ fun PhotoGrid(imageBitmaps: List<ImageBitmap>) {
 
 @Composable
 private fun RowScope.ImageItem(
-    imageBitmap: ImageBitmap?,
+    imagePath: String?,
     inSelectionMode: Boolean,
     isSelected: Boolean,
     onLongPress: () -> Unit,
@@ -92,7 +99,7 @@ private fun RowScope.ImageItem(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(6.dp))
             .let {
-                if (imageBitmap != null) {
+                if (imagePath != null) {
                     it
                         .pointerInput(inSelectionMode) {
                             detectTapGestures(
@@ -112,7 +119,7 @@ private fun RowScope.ImageItem(
                         }
                 } else it
             }
-            .background(if (imageBitmap != null) MaterialTheme.colorScheme.surfaceContainerHighest else Color.LightGray)
+            .background(if (imagePath != null) MaterialTheme.colorScheme.surfaceContainerHighest else Color.LightGray)
             .let {
                 if (inSelectionMode && isSelected) it.padding(20.dp) else it
             },
@@ -136,9 +143,11 @@ private fun RowScope.ImageItem(
             )
         }
 
-        if (imageBitmap != null) {
+        if (imagePath != null) {
+            val context = LocalContext.current
+            val imageBitmap = remember(imagePath) { readImageFromPath(context, imagePath) }
             Image(
-                imageBitmap,
+                imageBitmap!!,
                 contentDescription = "",
                 modifier = Modifier
                     .fillMaxSize()
@@ -159,5 +168,5 @@ private fun RowScope.ImageItem(
 @Preview(showBackground = true, widthDp = 300)
 @Composable
 fun PhotoGridPreview() {
-    PhotoGrid(imageBitmaps = listOf())
+    PhotoGrid(imagePaths = listOf())
 }
