@@ -285,15 +285,16 @@ fun CategoryList(
         Column {
             categoryList.forEach {
                 var openDeleteDialog by remember { mutableStateOf(false) }
-                DeleteConfirmationDialog(
-                    description = "Are you sure you want to delete this category?",
-                    openDialog = openDeleteDialog,
-                    onDismiss = { openDeleteDialog = false },
-                    onConfirmClicked = {
-                        deleteCategory(it)
-                        openDeleteDialog = false
-                    },
-                )
+                if (openDeleteDialog)
+                    DeleteConfirmationDialog(
+                        description = "Are you sure you want to delete this category?",
+                        onDismiss = { openDeleteDialog = false },
+                        onConfirmClicked = {
+                            deleteCategory(it)
+                            openDeleteDialog = false
+                        },
+                    )
+                
                 SettingsListItem(
                     title = it.name,
                     leading = {

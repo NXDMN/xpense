@@ -131,16 +131,16 @@ fun CategoryDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DeleteConfirmationDialog(
-                description = "Are you sure you want to delete this category?",
-                openDialog = openDeleteDialog,
-                onDismiss = { openDeleteDialog = false },
-                onConfirmClicked = {
-                    categoryDetailViewModel.deleteCategory()
-                    openDeleteDialog = false
-                    onNavigateBack()
-                },
-            )
+            if (openDeleteDialog)
+                DeleteConfirmationDialog(
+                    description = "Are you sure you want to delete this category?",
+                    onDismiss = { openDeleteDialog = false },
+                    onConfirmClicked = {
+                        categoryDetailViewModel.deleteCategory()
+                        openDeleteDialog = false
+                        onNavigateBack()
+                    },
+                )
 
             TextField(
                 value = categoryDetailUiState.name ?: "",

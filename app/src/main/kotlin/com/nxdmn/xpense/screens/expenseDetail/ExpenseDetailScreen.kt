@@ -137,16 +137,16 @@ fun ExpenseDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                DeleteConfirmationDialog(
-                    description = "Are you sure you want to delete this expense?",
-                    openDialog = openDeleteDialog,
-                    onDismiss = { openDeleteDialog = false },
-                    onConfirmClicked = {
-                        expenseDetailViewModel.deleteExpense()
-                        openDeleteDialog = false
-                        onNavigateBack()
-                    },
-                )
+                if (openDeleteDialog)
+                    DeleteConfirmationDialog(
+                        description = "Are you sure you want to delete this expense?",
+                        onDismiss = { openDeleteDialog = false },
+                        onConfirmClicked = {
+                            expenseDetailViewModel.deleteExpense()
+                            openDeleteDialog = false
+                            onNavigateBack()
+                        },
+                    )
 
                 CurrencyTextField(
                     currencyCode = expenseDetailUiState.currencyCode,
