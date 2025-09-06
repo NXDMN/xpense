@@ -6,21 +6,14 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +24,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -44,7 +36,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -73,6 +63,7 @@ import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.ui.components.CircleBorderIcon
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
+import com.nxdmn.xpense.ui.components.SelectionListDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,15 +134,16 @@ fun SettingsScreen(
                 onClick = { openDialog = true },
             )
 
-            CurrencySelectionDialog(
-                openDialog = openDialog,
-                onDismiss = { openDialog = false },
-                currencySymbolMap = settingsUiState.currencySymbolMap,
-                onCurrencySelected = {
-                    settingsViewModel.updateCurrency(it)
-                    openDialog = false
+            if (openDialog)
+                SelectionListDialog(
+                    items = settingsUiState.currencySymbolMap.keys.toList(),
+                    onClicked = {
+                        settingsViewModel.updateCurrency(it)
+                    },
+                    onDismiss = { openDialog = false },
+                ) {
+                    Text("${it.displayName} - ${it.currencyCode} (${settingsUiState.currencySymbolMap[it]})")
                 }
-            )
 
             HorizontalDivider(color = Color.LightGray)
 
@@ -197,15 +189,26 @@ fun SettingsScreen(
                 isBottom = true,
             )
 
-            CategorySelectionDialog(
-                openDialog = openCategorySelectionDialog,
-                onDismiss = { openCategorySelectionDialog = false },
-                categoryList = settingsUiState.categoryList,
-                onCategorySelected = {
-                    settingsViewModel.updateFavouriteCategory(it)
-                    openCategorySelectionDialog = false
+            if (openCategorySelectionDialog)
+                SelectionListDialog(
+                    items = settingsUiState.categoryList,
+                    onClicked = {
+                        settingsViewModel.updateFavouriteCategory(it)
+                    },
+                    onDismiss = { openCategorySelectionDialog = false },
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(15.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircleBorderIcon(
+                            resId = it.icon.resId,
+                            name = it.name,
+                            color = it.color
+                        )
+                        Text(it.name)
+                    }
                 }
-            )
         }
     }
 }
@@ -294,7 +297,7 @@ fun CategoryList(
                             openDeleteDialog = false
                         },
                     )
-                
+
                 SettingsListItem(
                     title = it.name,
                     leading = {
@@ -325,92 +328,6 @@ fun CategoryList(
             }
         }
     }
-}
-
-@Composable
-fun CurrencySelectionDialog(
-    openDialog: Boolean,
-    onDismiss: () -> Unit,
-    currencySymbolMap: Map<Currency, String>,
-    onCurrencySelected: (Currency) -> Unit
-) {
-    if (openDialog)
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
-                modifier = Modifier.heightIn(max = 600.dp),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
-            ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                ) {
-                    items(currencySymbolMap.keys.toList(), key = { c -> c.hashCode() }) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    remember { MutableInteractionSource() },
-                                    indication = ripple(),
-                                    onClick = {
-                                        onCurrencySelected(it)
-                                    }
-                                )
-                                .padding(vertical = 20.dp),
-                        ) {
-                            Text("${it.displayName} - ${it.currencyCode} (${currencySymbolMap[it]})")
-                        }
-                    }
-                }
-            }
-        }
-}
-
-@Composable
-fun CategorySelectionDialog(
-    openDialog: Boolean,
-    onDismiss: () -> Unit,
-    categoryList: List<CategoryModel>,
-    onCategorySelected: (CategoryModel) -> Unit
-) {
-    if (openDialog)
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
-                modifier = Modifier.heightIn(max = 600.dp),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = AlertDialogDefaults.TonalElevation
-            ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                ) {
-                    items(categoryList, key = { c -> c.id }) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    remember { MutableInteractionSource() },
-                                    indication = ripple(),
-                                    onClick = {
-                                        onCategorySelected(it)
-                                    }
-                                )
-                                .padding(vertical = 20.dp),
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(15.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CircleBorderIcon(
-                                    resId = it.icon.resId,
-                                    name = it.name,
-                                    color = it.color
-                                )
-                                Text(it.name)
-                            }
-                        }
-                    }
-                }
-            }
-        }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -493,14 +410,16 @@ fun TestPreview() {
                 onClick = { openDialog = true },
             )
 
-            CurrencySelectionDialog(
-                openDialog = openDialog,
-                onDismiss = { openDialog = false },
-                currencySymbolMap = mapOf(),
-                onCurrencySelected = {
-                    openDialog = false
+            if (openDialog)
+                SelectionListDialog(
+                    items = listOf<Currency>(),
+                    onClicked = {
+                        openDialog = false
+                    },
+                    onDismiss = { openDialog = false }
+                ) {
+                    Text("${it.displayName} - ${it.currencyCode}")
                 }
-            )
 
             HorizontalDivider(color = Color.LightGray)
 

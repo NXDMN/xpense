@@ -61,6 +61,7 @@ import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 import com.nxdmn.xpense.ui.components.PhotoGrid
+import com.nxdmn.xpense.ui.components.SelectionListDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -231,11 +232,13 @@ fun ExpenseDetailScreen(
                     }
                 }
 
+                var openAddImageDialog by remember { mutableStateOf(false) }
+
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(onClick = {
-                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        openAddImageDialog = true
                     }) {
-                        Text("Pick Image")
+                        Text("Add Image")
                     }
                     Button(onClick = {
                         expenseDetailViewModel.removeImages(selectedImages)
@@ -243,6 +246,27 @@ fun ExpenseDetailScreen(
                         Text("Delete Image")
                     }
                 }
+
+                val addImageOptions = listOf("Pick Image", "Take Photo")
+                if (openAddImageDialog)
+                    SelectionListDialog(
+                        addImageOptions,
+                        onClicked = {
+                            if (it == addImageOptions[0]) imagePicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                            else if (it == addImageOptions[1]) {
+
+                            }
+                        },
+                        onDismiss = { openAddImageDialog = false }
+                    ) {
+                        Text(it)
+                    }
+
+
 
                 appBarState.saveExpenseDetail = {
                     if (expenseDetailViewModel.saveExpense()) {
