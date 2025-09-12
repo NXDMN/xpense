@@ -1,6 +1,11 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,9 +16,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -33,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -52,6 +61,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.models.CategoryModel
@@ -247,6 +259,45 @@ fun ExpenseDetailScreen(
                     }
                 }
 
+                var openPermissionDialog by remember { mutableStateOf(false) }
+                var openPermissionDeniedDialog by remember { mutableStateOf(false) }
+
+                val launcher =
+                    rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission()
+                    ) { isGranted ->
+                        if (isGranted) {
+                            // Permission is granted. Continue the action or workflow in your
+                            // app.
+                        } else {
+                            val permanentlyDenied =
+                                !ActivityCompat.shouldShowRequestPermissionRationale(
+                                    context.findActivity()!!,
+                                    Manifest.permission.CAMERA
+                                )
+                            if (permanentlyDenied) {
+                                openPermissionDeniedDialog = true
+                            } else {
+                                openPermissionDialog = true
+                            }
+                        }
+                    }
+
+                if (openPermissionDeniedDialog)
+                    PermissionDialog(
+                        title = "Permission Denied",
+                        description = "Camera access has been disabled. To use this feature, please enable the camera permission in your device settings.",
+                        onDismiss = {
+                            openPermissionDeniedDialog = false
+                        }
+                    )
+
+                val shouldShowRationale =
+                    ActivityCompat.shouldShowRequestPermissionRationale(
+                        context.findActivity()!!,
+                        Manifest.permission.CAMERA
+                    )
+
                 val addImageOptions = listOf("Pick Image", "Take Photo")
                 if (openAddImageDialog)
                     SelectionListDialog(
@@ -258,6 +309,18 @@ fun ExpenseDetailScreen(
                                 )
                             )
                             else if (it == addImageOptions[1]) {
+                                val status = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                )
+
+                                if (status != PackageManager.PERMISSION_GRANTED) {
+                                    if (!shouldShowRationale) {
+                                        launcher.launch(Manifest.permission.CAMERA)
+                                    } else {
+                                        openPermissionDialog = true
+                                    }
+                                }
 
                             }
                         },
@@ -266,6 +329,15 @@ fun ExpenseDetailScreen(
                         Text(it)
                     }
 
+                if (openPermissionDialog)
+                    PermissionDialog(
+                        title = "Camera Permission",
+                        description = "We need access to your camera so you can take photos directly in the app. We’ll only use it for this purpose.",
+                        onDismiss = { openPermissionDialog = false },
+                        onConfirm = {
+                            launcher.launch(Manifest.permission.CAMERA)
+                        }
+                    )
 
 
                 appBarState.saveExpenseDetail = {
@@ -297,6 +369,58 @@ fun CategorySection(
                 onClicked = {
                     onCategorySelected(it)
                 })
+        }
+    }
+}
+
+fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) return currentContext
+        currentContext = currentContext.baseContext
+    }
+    return null
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PermissionDialog(
+    title: String,
+    description: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit = {},
+) {
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+        ) {
+            Column {
+                Text(
+                    title,
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 20.sp
+                )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = description)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancel")
+                        }
+                        TextButton(
+                            onClick = {
+                                onConfirm()
+                                onDismiss()
+                            },
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+            }
         }
     }
 }
