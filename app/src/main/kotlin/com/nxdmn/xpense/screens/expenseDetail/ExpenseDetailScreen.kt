@@ -394,30 +394,28 @@ fun PermissionDialog(
         Surface(
             shape = MaterialTheme.shapes.large,
         ) {
-            Column {
+            Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     title,
-                    modifier = Modifier.padding(16.dp),
                     fontSize = 20.sp
                 )
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = description)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(text = description)
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    TextButton(
+                        onClick = {
+                            onConfirm()
+                            onDismiss()
+                        },
                     ) {
-                        TextButton(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        TextButton(
-                            onClick = {
-                                onConfirm()
-                                onDismiss()
-                            },
-                        ) {
-                            Text("Confirm")
-                        }
+                        Text("Confirm")
                     }
                 }
             }
