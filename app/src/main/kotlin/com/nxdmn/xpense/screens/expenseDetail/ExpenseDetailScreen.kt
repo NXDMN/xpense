@@ -267,8 +267,7 @@ fun ExpenseDetailScreen(
                         ActivityResultContracts.RequestPermission()
                     ) { isGranted ->
                         if (isGranted) {
-                            // Permission is granted. Continue the action or workflow in your
-                            // app.
+                            TODO()
                         } else {
                             val permanentlyDenied =
                                 !ActivityCompat.shouldShowRequestPermissionRationale(
@@ -287,15 +286,11 @@ fun ExpenseDetailScreen(
                     PermissionDialog(
                         title = "Permission Denied",
                         description = "Camera access has been disabled. To use this feature, please enable the camera permission in your device settings.",
+                        dismissText = "Okay",
+                        confirmText = null,
                         onDismiss = {
                             openPermissionDeniedDialog = false
                         }
-                    )
-
-                val shouldShowRationale =
-                    ActivityCompat.shouldShowRequestPermissionRationale(
-                        context.findActivity()!!,
-                        Manifest.permission.CAMERA
                     )
 
                 val addImageOptions = listOf("Pick Image", "Take Photo")
@@ -309,16 +304,22 @@ fun ExpenseDetailScreen(
                                 )
                             )
                             else if (it == addImageOptions[1]) {
-                                val status = ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.CAMERA
-                                )
+                                when {
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.CAMERA
+                                    ) == PackageManager.PERMISSION_GRANTED -> {
+                                        TODO()
+                                    }
 
-                                if (status != PackageManager.PERMISSION_GRANTED) {
-                                    if (!shouldShowRationale) {
-                                        launcher.launch(Manifest.permission.CAMERA)
-                                    } else {
+                                    ActivityCompat.shouldShowRequestPermissionRationale(
+                                        context.findActivity()!!, Manifest.permission.CAMERA
+                                    ) -> {
                                         openPermissionDialog = true
+                                    }
+
+                                    else -> {
+                                        launcher.launch(Manifest.permission.CAMERA)
                                     }
                                 }
 
@@ -387,6 +388,8 @@ fun Context.findActivity(): Activity? {
 fun PermissionDialog(
     title: String,
     description: String,
+    dismissText: String = "Cancel",
+    confirmText: String? = "Confirm",
     onDismiss: () -> Unit,
     onConfirm: () -> Unit = {},
 ) {
@@ -407,16 +410,17 @@ fun PermissionDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(dismissText)
                     }
-                    TextButton(
-                        onClick = {
-                            onConfirm()
-                            onDismiss()
-                        },
-                    ) {
-                        Text("Confirm")
-                    }
+                    if (confirmText != null)
+                        TextButton(
+                            onClick = {
+                                onConfirm()
+                                onDismiss()
+                            },
+                        ) {
+                            Text(confirmText)
+                        }
                 }
             }
         }
