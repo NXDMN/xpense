@@ -35,10 +35,12 @@ class PermissionState(
             context,
             permission
         )
-        shouldShowRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-            context.findActivity()!!,
-            permission
-        )
+        shouldShowRationale = context.findActivity()?.let {
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                it,
+                permission
+            )
+        } ?: false
     }
 
     fun requestPermission() = launcher.launch(permission)
