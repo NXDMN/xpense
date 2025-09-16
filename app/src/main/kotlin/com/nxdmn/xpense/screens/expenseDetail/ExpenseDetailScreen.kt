@@ -62,8 +62,6 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.data.models.CategoryModel
@@ -74,6 +72,7 @@ import com.nxdmn.xpense.ui.components.CurrencyTextField
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 import com.nxdmn.xpense.ui.components.PhotoGrid
 import com.nxdmn.xpense.ui.components.SelectionListDialog
+import com.nxdmn.xpense.ui.states.rememberPermissionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -262,25 +261,11 @@ fun ExpenseDetailScreen(
                 var openPermissionDialog by remember { mutableStateOf(false) }
                 var openPermissionDeniedDialog by remember { mutableStateOf(false) }
 
-                val launcher =
-                    rememberLauncherForActivityResult(
-                        ActivityResultContracts.RequestPermission()
-                    ) { isGranted ->
-                        if (isGranted) {
-                            TODO()
-                        } else {
-                            val permanentlyDenied =
-                                !ActivityCompat.shouldShowRequestPermissionRationale(
-                                    context.findActivity()!!,
-                                    Manifest.permission.CAMERA
-                                )
-                            if (permanentlyDenied) {
-                                openPermissionDeniedDialog = true
-                            } else {
-                                openPermissionDialog = true
-                            }
-                        }
-                    }
+                val cameraPermissionState =
+                    rememberPermissionState(Manifest.permission.CAMERA, showPermissionDialog = {
+                        openPermissionDialog = it
+                        openPermissionDeniedDialog = !it
+                    })
 
                 if (openPermissionDeniedDialog)
                     PermissionDialog(
@@ -305,22 +290,12 @@ fun ExpenseDetailScreen(
                             )
                             else if (it == addImageOptions[1]) {
                                 when {
-                                    ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.CAMERA
-                                    ) == PackageManager.PERMISSION_GRANTED -> {
-                                        TODO()
-                                    }
-
-                                    ActivityCompat.shouldShowRequestPermissionRationale(
-                                        context.findActivity()!!, Manifest.permission.CAMERA
-                                    ) -> {
+                                    cameraPermissionState.status == PackageManager.PERMISSION_GRANTED -> {}
+                                    cameraPermissionState.shouldShowRationale -> {
                                         openPermissionDialog = true
                                     }
 
-                                    else -> {
-                                        launcher.launch(Manifest.permission.CAMERA)
-                                    }
+                                    else -> cameraPermissionState.requestPermission()
                                 }
 
                             }
@@ -336,7 +311,7 @@ fun ExpenseDetailScreen(
                         description = "We need access to your camera so you can take photos directly in the app. We’ll only use it for this purpose.",
                         onDismiss = { openPermissionDialog = false },
                         onConfirm = {
-                            launcher.launch(Manifest.permission.CAMERA)
+                            cameraPermissionState.requestPermission()
                         }
                     )
 
@@ -372,15 +347,6 @@ fun CategorySection(
                 })
         }
     }
-}
-
-fun Context.findActivity(): Activity? {
-    var currentContext = this
-    while (currentContext is ContextWrapper) {
-        if (currentContext is Activity) return currentContext
-        currentContext = currentContext.baseContext
-    }
-    return null
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
