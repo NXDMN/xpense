@@ -43,13 +43,16 @@ class PermissionState(
         } ?: false
     }
 
-    fun requestPermission() = launcher.launch(permission)
+    fun requestPermission() {
+        launcher.launch(permission)
+    }
 }
 
 @Composable
 fun rememberPermissionState(
     permission: String,
-    showPermissionDialog: (Boolean) -> Unit = {}
+    showPermissionDialog: () -> Unit = {},
+    showPermissionDeniedDialog: () -> Unit = {}
 ): PermissionState {
     val context = LocalContext.current
     lateinit var state: PermissionState
@@ -59,8 +62,13 @@ fun rememberPermissionState(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             state.refreshStatus(context)
-            if (state.status != PackageManager.PERMISSION_GRANTED)
-                showPermissionDialog(state.shouldShowRationale)
+            if (!isGranted) {
+                if (state.shouldShowRationale) {
+                    showPermissionDialog()
+                } else {
+                    showPermissionDeniedDialog()
+                }
+            }
         }
 
     state = remember { PermissionState(permission, launcher) }

@@ -262,10 +262,11 @@ fun ExpenseDetailScreen(
                 var openPermissionDeniedDialog by remember { mutableStateOf(false) }
 
                 val cameraPermissionState =
-                    rememberPermissionState(Manifest.permission.CAMERA, showPermissionDialog = {
-                        openPermissionDialog = it
-                        openPermissionDeniedDialog = !it
-                    })
+                    rememberPermissionState(
+                        Manifest.permission.CAMERA,
+                        showPermissionDialog = { openPermissionDialog = true },
+                        showPermissionDeniedDialog = { openPermissionDeniedDialog = true }
+                    )
 
                 if (openPermissionDeniedDialog)
                     PermissionDialog(
@@ -355,7 +356,7 @@ fun PermissionDialog(
     title: String,
     description: String,
     dismissText: String = "Cancel",
-    confirmText: String? = "Confirm",
+    confirmText: String? = "Okay",
     onDismiss: () -> Unit,
     onConfirm: () -> Unit = {},
 ) {
