@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.screens.camera.CameraScreen
 import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailScreen
 import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailViewModel
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
@@ -49,8 +50,10 @@ fun XpenseNavHost(
         )
         expenseDetailScreen(
             appBarState,
+            onNavigateToCamera = { navController.navigateToCamera() },
             onNavigateBack = { navController.popBackStack() }
         )
+        cameraScreen()
         settingsScreen(onNavigateToCategoryDetail = { categoryId ->
             navController.navigateToCategoryDetail(categoryId)
         })
@@ -73,6 +76,10 @@ fun NavHostController.navigateToExpenseList() =
 
 fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
     this.navigateSingleTopTo(Route.ExpenseDetail(expenseId = expenseId))
+
+fun NavHostController.navigateToCamera() = this.navigate(Route.Camera) {
+    launchSingleTop = true
+}
 
 fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Route.Settings)
@@ -98,6 +105,7 @@ fun NavGraphBuilder.expenseListScreen(
 
 fun NavGraphBuilder.expenseDetailScreen(
     appBarState: AppBarState,
+    onNavigateToCamera: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     composable<Route.ExpenseDetail> { navBackStackEntry ->
@@ -113,8 +121,15 @@ fun NavGraphBuilder.expenseDetailScreen(
         ExpenseDetailScreen(
             appBarState,
             vm,
+            onNavigateToCamera,
             onNavigateBack
         )
+    }
+}
+
+fun NavGraphBuilder.cameraScreen() {
+    composable<Route.Camera> {
+        CameraScreen()
     }
 }
 

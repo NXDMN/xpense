@@ -10,6 +10,9 @@ sealed class Route {
     data class ExpenseDetail(val expenseId: Long? = null) : Route()
 
     @Serializable
+    data object Camera : Route()
+
+    @Serializable
     data object Settings : Route()
 
     @Serializable
@@ -19,6 +22,7 @@ sealed class Route {
 val routes: List<Route> = listOf(
     Route.ExpenseList,
     Route.ExpenseDetail(),
+    Route.Camera,
     Route.Settings,
     Route.CategoryDetail()
 )
