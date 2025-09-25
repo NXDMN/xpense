@@ -51,6 +51,7 @@ class PermissionState(
 @Composable
 fun rememberPermissionState(
     permission: String,
+    onGranted: () -> Unit = {},
     showPermissionDialog: () -> Unit = {},
     showPermissionDeniedDialog: () -> Unit = {}
 ): PermissionState {
@@ -62,7 +63,9 @@ fun rememberPermissionState(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             state.refreshStatus(context)
-            if (!isGranted) {
+            if (isGranted) {
+                onGranted()
+            } else {
                 if (state.shouldShowRationale) {
                     showPermissionDialog()
                 } else {
