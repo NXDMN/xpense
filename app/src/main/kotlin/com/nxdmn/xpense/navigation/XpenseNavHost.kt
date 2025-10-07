@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
 import com.nxdmn.xpense.screens.camera.CameraScreen
+import com.nxdmn.xpense.screens.camera.CameraViewModel
 import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailScreen
 import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailViewModel
 import com.nxdmn.xpense.screens.expenseDetail.ExpenseDetailScreen
@@ -129,7 +130,8 @@ fun NavGraphBuilder.expenseDetailScreen(
 
 fun NavGraphBuilder.cameraScreen() {
     composable<Route.Camera> {
-        CameraScreen()
+        val vm: CameraViewModel = viewModel()
+        CameraScreen(vm)
     }
 }
 

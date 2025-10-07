@@ -57,47 +57,48 @@ private fun XpenseApp() {
             modifier = Modifier.imePadding(),
             contentWindowInsets = WindowInsets(0.dp),
             bottomBar = {
-                BottomAppBar(
-                    actions = {
-                        IconButton(
-                            enabled = appBarState.currentScreen != Route.ExpenseList,
-                            onClick = { navController.navigateToExpenseList() }
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "Expense List"
-                            )
-                        }
-                        IconButton(
-                            enabled = appBarState.currentScreen != Route.Settings,
-                            onClick = { navController.navigateToSetting() }
-                        ) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
-                        }
-                    },
-                    floatingActionButton = {
-                        if (appBarState.currentScreen == Route.ExpenseDetail()) {
-                            FloatingActionButton(
-                                onClick = {
-                                    appBarState.saveExpenseDetail?.let { it() }
-                                }
+                if (appBarState.currentScreen != Route.Camera)
+                    BottomAppBar(
+                        actions = {
+                            IconButton(
+                                enabled = appBarState.currentScreen != Route.ExpenseList,
+                                onClick = { navController.navigateToExpenseList() }
                             ) {
                                 Icon(
-                                    painterResource(R.drawable.baseline_save_24),
-                                    contentDescription = "Save"
+                                    Icons.AutoMirrored.Filled.List,
+                                    contentDescription = "Expense List"
                                 )
                             }
-                        } else {
-                            FloatingActionButton(
-                                onClick = {
-                                    navController.navigateToExpenseDetail()
-                                }
+                            IconButton(
+                                enabled = appBarState.currentScreen != Route.Settings,
+                                onClick = { navController.navigateToSetting() }
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = "Add")
+                                Icon(Icons.Filled.Settings, contentDescription = "Settings")
                             }
-                        }
-                    },
-                )
+                        },
+                        floatingActionButton = {
+                            if (appBarState.currentScreen == Route.ExpenseDetail()) {
+                                FloatingActionButton(
+                                    onClick = {
+                                        appBarState.saveExpenseDetail?.let { it() }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.baseline_save_24),
+                                        contentDescription = "Save"
+                                    )
+                                }
+                            } else {
+                                FloatingActionButton(
+                                    onClick = {
+                                        navController.navigateToExpenseDetail()
+                                    }
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = "Add")
+                                }
+                            }
+                        },
+                    )
             },
         ) { innerPadding ->
             XpenseNavHost(
