@@ -67,4 +67,7 @@ class CameraViewModel() : ViewModel() {
             cameraControl?.startFocusAndMetering(meteringAction)
         }
     }
+
+    fun capturePhoto() {
+    }
 }
