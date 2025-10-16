@@ -5,6 +5,7 @@ import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
@@ -39,6 +41,8 @@ import kotlinx.coroutines.delay
 @Composable
 fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
     val currentSurfaceRequest by cameraViewModel.surfaceRequests.collectAsState()
+    val cameraUiState by cameraViewModel.uiState.collectAsState()
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -56,46 +60,54 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             showAutoFocusIndicator = false
         }
     }
-    Box {
-        currentSurfaceRequest?.let { surfaceRequest ->
-            // CoordinateTransformer for transforming from Offsets to Surface coordinates
-            val coordinateTransformer = remember { MutableCoordinateTransformer() }
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (cameraUiState.isCapturing) {
+            currentSurfaceRequest?.let { surfaceRequest ->
+                // CoordinateTransformer for transforming from Offsets to Surface coordinates
+                val coordinateTransformer = remember { MutableCoordinateTransformer() }
 
-            CameraXViewfinder(
-                surfaceRequest = surfaceRequest,
-                modifier =
-                    Modifier.pointerInput(Unit) {
-                        detectTapGestures {
-                            with(coordinateTransformer) {
-                                cameraViewModel.focusOnPoint(
-                                    it.transform()
-                                )
-                                autofocusCoords = it
-                                showAutoFocusIndicator = true
+                CameraXViewfinder(
+                    surfaceRequest = surfaceRequest,
+                    modifier =
+                        Modifier.pointerInput(Unit) {
+                            detectTapGestures {
+                                with(coordinateTransformer) {
+                                    cameraViewModel.focusOnPoint(
+                                        it.transform()
+                                    )
+                                    autofocusCoords = it
+                                    showAutoFocusIndicator = true
+                                }
                             }
-                        }
-                    },
-                coordinateTransformer = coordinateTransformer,
-            )
-
-            val indicatorSize = 48.dp
-            AnimatedVisibility(
-                visible = showAutoFocusIndicator,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .offset { autofocusCoords.round() }
-                    .offset(
-                        -indicatorSize / 2,
-                        -indicatorSize / 2
-                    ) // center point
-            ) {
-                Spacer(
-                    Modifier
-                        .border(2.dp, Color.White, CircleShape)
-                        .size(indicatorSize)
+                        },
+                    coordinateTransformer = coordinateTransformer,
                 )
+
+                val indicatorSize = 48.dp
+                AnimatedVisibility(
+                    visible = showAutoFocusIndicator,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .offset { autofocusCoords.round() }
+                        .offset(
+                            -indicatorSize / 2,
+                            -indicatorSize / 2
+                        ) // center point
+                ) {
+                    Spacer(
+                        Modifier
+                            .border(2.dp, Color.White, CircleShape)
+                            .size(indicatorSize)
+                    )
+                }
             }
+        } else {
+            Image(
+                cameraUiState.capturedBitmap!!,
+                contentDescription = "",
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         Spacer(
@@ -109,7 +121,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                     indication = null,
                     onClick = {
                         showAutoFocusIndicator = false
-                        cameraViewModel.capturePhoto()
+                        cameraViewModel.capturePhoto(context)
                     },
                 )
         )
