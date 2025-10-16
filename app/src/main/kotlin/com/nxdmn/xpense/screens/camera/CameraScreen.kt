@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,10 +34,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nxdmn.xpense.R
 import kotlinx.coroutines.delay
 
 @Composable
@@ -114,7 +118,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             Modifier
                 .windowInsetsPadding(WindowInsets.safeContent)
                 .align(Alignment.BottomCenter)
-                .size(50.dp)
+                .size(60.dp)
                 .background(Color.White, CircleShape)
                 .clickable(
                     interactionSource = null,
@@ -125,5 +129,19 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                     },
                 )
         )
+
+        IconButton(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.safeContent)
+                .align(Alignment.BottomEnd)
+                .offset((-40).dp)
+                .background(Color.White, CircleShape),
+            onClick = { cameraViewModel.retakePhoto() }
+        ) {
+            Icon(
+                painterResource(R.drawable.baseline_replay_24),
+                contentDescription = "Retake photo"
+            )
+        }
     }
 }

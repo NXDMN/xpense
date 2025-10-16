@@ -122,4 +122,8 @@ class CameraViewModel() : ViewModel() {
                 }
             })
     }
+
+    fun retakePhoto() {
+        _uiState.update { it.copy(isCapturing = true) }
+    }
 }
