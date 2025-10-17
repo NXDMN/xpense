@@ -1,5 +1,9 @@
 package com.nxdmn.xpense.screens.camera
 
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.LocalActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.animation.AnimatedVisibility
@@ -22,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,7 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -50,6 +57,17 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val activity = LocalActivity.current as ComponentActivity
+    DisposableEffect(activity) {
+        activity.enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.Black.toArgb())
+        )
+
+        onDispose {
+            activity.enableEdgeToEdge()
+        }
+    }
+
     LaunchedEffect(lifecycleOwner) {
         cameraViewModel.bindToCamera(context.applicationContext, lifecycleOwner)
     }
@@ -64,7 +82,12 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             showAutoFocusIndicator = false
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
         if (cameraUiState.isCapturing) {
             currentSurfaceRequest?.let { surfaceRequest ->
                 // CoordinateTransformer for transforming from Offsets to Surface coordinates
@@ -85,6 +108,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                             }
                         },
                     coordinateTransformer = coordinateTransformer,
+                    contentScale = ContentScale.Fit
                 )
 
                 val indicatorSize = 48.dp
@@ -130,18 +154,19 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                 )
         )
 
-        IconButton(
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.safeContent)
-                .align(Alignment.BottomEnd)
-                .offset((-40).dp)
-                .background(Color.White, CircleShape),
-            onClick = { cameraViewModel.retakePhoto() }
-        ) {
-            Icon(
-                painterResource(R.drawable.baseline_replay_24),
-                contentDescription = "Retake photo"
-            )
-        }
+        if (!cameraUiState.isCapturing)
+            IconButton(
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.safeContent)
+                    .align(Alignment.BottomEnd)
+                    .offset((-40).dp)
+                    .background(Color.White, CircleShape),
+                onClick = { cameraViewModel.retakePhoto() }
+            ) {
+                Icon(
+                    painterResource(R.drawable.baseline_replay_24),
+                    contentDescription = "Retake photo"
+                )
+            }
     }
 }
