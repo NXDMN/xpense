@@ -3,8 +3,6 @@ package com.nxdmn.xpense.screens.camera
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.util.Log
-import android.util.Rational
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -14,8 +12,8 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import androidx.camera.core.SurfaceRequest
-import androidx.camera.core.UseCaseGroup
-import androidx.camera.core.ViewPort
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.ui.geometry.Offset
@@ -45,7 +43,12 @@ class CameraViewModel() : ViewModel() {
     private var surfaceMeteringPointFactory: SurfaceOrientedMeteringPointFactory? = null
     private var cameraControl: CameraControl? = null
 
-    private val previewUseCase = Preview.Builder().build().apply {
+    // default is 4:3
+    private val resolution = ResolutionSelector.Builder().setAspectRatioStrategy(
+        AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY
+    ).build()
+
+    private val previewUseCase = Preview.Builder().setResolutionSelector(resolution).build().apply {
         setSurfaceProvider { newSurfaceRequest ->
             _surfaceRequests.update { newSurfaceRequest }
             surfaceMeteringPointFactory = SurfaceOrientedMeteringPointFactory(
@@ -55,7 +58,7 @@ class CameraViewModel() : ViewModel() {
         }
     }
 
-    private val imageCaptureUseCase = ImageCapture.Builder()
+    private val imageCaptureUseCase = ImageCapture.Builder().setResolutionSelector(resolution)
         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
         .build()
 
@@ -63,18 +66,12 @@ class CameraViewModel() : ViewModel() {
         .requireLensFacing(CameraSelector.LENS_FACING_BACK)
         .build()
 
-    private val viewPort = ViewPort.Builder(Rational(3, 4), previewUseCase.targetRotation).build()
-
-    private val useCaseGroup =
-        UseCaseGroup.Builder().addUseCase(previewUseCase).addUseCase(imageCaptureUseCase)
-            .setViewPort(viewPort)
-            .build()
 
     suspend fun bindToCamera(appContext: Context, lifecycleOwner: LifecycleOwner) {
         val processCameraProvider = ProcessCameraProvider.awaitInstance(appContext)
 
         val camera = processCameraProvider.bindToLifecycle(
-            lifecycleOwner, cameraSelector, useCaseGroup
+            lifecycleOwner, cameraSelector, previewUseCase, imageCaptureUseCase
         )
         cameraControl = camera.cameraControl
 
@@ -101,7 +98,6 @@ class CameraViewModel() : ViewModel() {
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
-
                     val bitmap = Bitmap.createBitmap(
                         image.toBitmap(),
                         0,
@@ -119,6 +115,7 @@ class CameraViewModel() : ViewModel() {
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
+                    exception.printStackTrace()
                 }
             })
     }
