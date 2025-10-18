@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -51,12 +53,6 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
-    val currentSurfaceRequest by cameraViewModel.surfaceRequests.collectAsState()
-    val cameraUiState by cameraViewModel.uiState.collectAsState()
-
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-
     val activity = LocalActivity.current as ComponentActivity
     DisposableEffect(activity) {
         activity.enableEdgeToEdge(
@@ -67,6 +63,12 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             activity.enableEdgeToEdge()
         }
     }
+
+    val currentSurfaceRequest by cameraViewModel.surfaceRequests.collectAsState()
+    val cameraUiState by cameraViewModel.uiState.collectAsState()
+
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(lifecycleOwner) {
         cameraViewModel.bindToCamera(context.applicationContext, lifecycleOwner)
@@ -138,7 +140,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             )
         }
 
-        Spacer(
+        Box(
             Modifier
                 .windowInsetsPadding(WindowInsets.safeContent)
                 .align(Alignment.BottomCenter)
@@ -149,10 +151,23 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                     indication = null,
                     onClick = {
                         showAutoFocusIndicator = false
-                        cameraViewModel.capturePhoto(context)
+                        if (cameraUiState.isCapturing) {
+                            cameraViewModel.capturePhoto(context)
+                        } else {
+                            cameraViewModel.savePhoto()
+                        }
                     },
                 )
-        )
+        ) {
+            if (!cameraUiState.isCapturing)
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = "Confirm photo",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(36.dp)
+                )
+        }
 
         if (!cameraUiState.isCapturing)
             IconButton(

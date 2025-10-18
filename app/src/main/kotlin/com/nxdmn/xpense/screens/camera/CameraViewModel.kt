@@ -69,7 +69,6 @@ class CameraViewModel() : ViewModel() {
 
     suspend fun bindToCamera(appContext: Context, lifecycleOwner: LifecycleOwner) {
         val processCameraProvider = ProcessCameraProvider.awaitInstance(appContext)
-
         val camera = processCameraProvider.bindToLifecycle(
             lifecycleOwner, cameraSelector, previewUseCase, imageCaptureUseCase
         )
@@ -122,5 +121,9 @@ class CameraViewModel() : ViewModel() {
 
     fun retakePhoto() {
         _uiState.update { it.copy(isCapturing = true) }
+    }
+
+    fun savePhoto() {
+        
     }
 }
