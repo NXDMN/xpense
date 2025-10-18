@@ -17,7 +17,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
@@ -95,41 +97,49 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                 // CoordinateTransformer for transforming from Offsets to Surface coordinates
                 val coordinateTransformer = remember { MutableCoordinateTransformer() }
 
-                CameraXViewfinder(
-                    surfaceRequest = surfaceRequest,
-                    modifier =
-                        Modifier.pointerInput(Unit) {
-                            detectTapGestures {
-                                with(coordinateTransformer) {
-                                    cameraViewModel.focusOnPoint(
-                                        it.transform()
-                                    )
-                                    autofocusCoords = it
-                                    showAutoFocusIndicator = true
-                                }
-                            }
-                        },
-                    coordinateTransformer = coordinateTransformer,
-                    contentScale = ContentScale.Fit
-                )
-
-                val indicatorSize = 48.dp
-                AnimatedVisibility(
-                    visible = showAutoFocusIndicator,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+                Box(
                     modifier = Modifier
-                        .offset { autofocusCoords.round() }
-                        .offset(
-                            -indicatorSize / 2,
-                            -indicatorSize / 2
-                        ) // center point
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .aspectRatio(3f / 4f)
+                        .background(Color.Green)
                 ) {
-                    Spacer(
-                        Modifier
-                            .border(2.dp, Color.White, CircleShape)
-                            .size(indicatorSize)
+                    CameraXViewfinder(
+                        surfaceRequest = surfaceRequest,
+                        modifier =
+                            Modifier.pointerInput(Unit) {
+                                detectTapGestures {
+                                    with(coordinateTransformer) {
+                                        cameraViewModel.focusOnPoint(
+                                            it.transform()
+                                        )
+                                        autofocusCoords = it
+                                        showAutoFocusIndicator = true
+                                    }
+                                }
+                            },
+                        coordinateTransformer = coordinateTransformer,
+                        contentScale = ContentScale.None
                     )
+
+                    val indicatorSize = 48.dp
+                    AnimatedVisibility(
+                        visible = showAutoFocusIndicator,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier
+                            .offset { autofocusCoords.round() }
+                            .offset(
+                                -indicatorSize / 2,
+                                -indicatorSize / 2
+                            ) // center point
+                    ) {
+                        Spacer(
+                            Modifier
+                                .border(2.dp, Color.White, CircleShape)
+                                .size(indicatorSize)
+                        )
+                    }
                 }
             }
         } else {
