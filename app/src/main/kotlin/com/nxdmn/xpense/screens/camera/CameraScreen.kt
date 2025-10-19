@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.screens.camera
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -71,6 +74,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val configuration = LocalConfiguration.current
 
     LaunchedEffect(lifecycleOwner) {
         cameraViewModel.bindToCamera(context.applicationContext, lifecycleOwner)
@@ -100,8 +104,15 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .fillMaxWidth()
-                        .aspectRatio(3f / 4f)
+                        .let {
+                            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                it.fillMaxHeight()
+                                it.aspectRatio(4f / 3f)
+                            } else {
+                                it.fillMaxWidth()
+                                it.aspectRatio(3f / 4f)
+                            }
+                        }
                 ) {
                     CameraXViewfinder(
                         surfaceRequest = surfaceRequest,
@@ -152,7 +163,13 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
         Box(
             Modifier
                 .windowInsetsPadding(WindowInsets.safeContent)
-                .align(Alignment.BottomCenter)
+                .let {
+                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        it.align(Alignment.CenterEnd)
+                    } else {
+                        it.align(Alignment.BottomCenter)
+                    }
+                }
                 .size(60.dp)
                 .background(Color.White, CircleShape)
                 .clickable(
@@ -183,7 +200,13 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.safeContent)
                     .align(Alignment.BottomEnd)
-                    .offset((-40).dp)
+                    .let {
+                        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                            it.offset(y = (-40).dp)
+                        } else {
+                            it.offset((-40).dp)
+                        }
+                    }
                     .background(Color.White, CircleShape),
                 onClick = { cameraViewModel.retakePhoto() }
             ) {
