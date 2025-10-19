@@ -102,7 +102,6 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                         .align(Alignment.Center)
                         .fillMaxWidth()
                         .aspectRatio(3f / 4f)
-                        .background(Color.Green)
                 ) {
                     CameraXViewfinder(
                         surfaceRequest = surfaceRequest,
