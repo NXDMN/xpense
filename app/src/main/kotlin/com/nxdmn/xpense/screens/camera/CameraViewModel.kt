@@ -26,17 +26,20 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nxdmn.xpense.helpers.toLocalDateTime
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.time.format.DateTimeFormatter
 
 data class CameraUiState(
-    val isBusy: Boolean = true,
+    val isBusy: Boolean = false,
     val isCapturing: Boolean = true,
     val capturedBitmap: ImageBitmap? = null,
 )
@@ -136,47 +139,56 @@ class CameraViewModel() : ViewModel() {
     }
 
     fun savePhoto(context: Context) {
-        val resolver = context.contentResolver
-        var uri: Uri? = null
-        try {
-            val packageManager = context.packageManager
-            var appName = "Xpense"
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isBusy = true) }
+
+            val resolver = context.contentResolver
+            var uri: Uri? = null
+
             try {
-                val applicationInfo = packageManager.getApplicationInfo(context.packageName, 0)
-                appName = packageManager.getApplicationLabel(applicationInfo).toString()
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-            }
-
-            val time =
-                timeStamp!!.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_$time")
-                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/$appName")
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
-
-            uri = resolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            )
-
-            uri?.let { it ->
-                val bitmap = _uiState.value.capturedBitmap?.asAndroidBitmap()
-                resolver.openOutputStream(it)?.use { outputStream ->
-                    bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                val appName = try {
+                    val packageManager = context.packageManager
+                    val applicationInfo =
+                        packageManager.getApplicationInfo(context.packageName, 0)
+                    packageManager.getApplicationLabel(applicationInfo).toString()
+                } catch (e: PackageManager.NameNotFoundException) {
+                    e.printStackTrace()
+                    "Xpense"
                 }
 
-                // mark as not pending so it becomes visible in gallery
-                contentValues.clear()
-                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
-                resolver.update(it, contentValues, null, null)
+                val time =
+                    timeStamp!!.toLocalDateTime()
+                        .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_$time")
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/$appName")
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+
+                uri = resolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+
+                uri?.let { it ->
+                    val bitmap = _uiState.value.capturedBitmap!!.asAndroidBitmap()
+                    resolver.openOutputStream(it)?.use { outputStream ->
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    }
+
+                    // mark as not pending so it becomes visible in gallery
+                    contentValues.clear()
+                    contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                    resolver.update(it, contentValues, null, null)
+                }
+            } catch (e: IOException) {
+                uri?.let {
+                    resolver.delete(it, null, null)
+                }
+                e.printStackTrace()
             }
-        } catch (e: IOException) {
-            if (uri != null)
-                resolver.delete(uri, null, null)
-            e.printStackTrace()
+            _uiState.update { it.copy(isBusy = false) }
         }
     }
 }
