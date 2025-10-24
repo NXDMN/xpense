@@ -1,8 +1,12 @@
 package com.nxdmn.xpense.screens.camera
 
+import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -18,14 +22,18 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
+import com.nxdmn.xpense.helpers.toLocalDateTime
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.io.IOException
+import java.time.format.DateTimeFormatter
 
 data class CameraUiState(
     val isBusy: Boolean = true,
@@ -39,6 +47,8 @@ class CameraViewModel() : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
+
+    private var timeStamp: Long? = null
 
     private var surfaceMeteringPointFactory: SurfaceOrientedMeteringPointFactory? = null
     private var cameraControl: CameraControl? = null
@@ -97,6 +107,7 @@ class CameraViewModel() : ViewModel() {
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
+                    timeStamp = System.currentTimeMillis()
                     val bitmap = Bitmap.createBitmap(
                         image.toBitmap(),
                         0,
@@ -120,10 +131,52 @@ class CameraViewModel() : ViewModel() {
     }
 
     fun retakePhoto() {
-        _uiState.update { it.copy(isCapturing = true) }
+        _uiState.update { it.copy(isCapturing = true, capturedBitmap = null) }
+        timeStamp = null
     }
 
-    fun savePhoto() {
-        
+    fun savePhoto(context: Context) {
+        val resolver = context.contentResolver
+        var uri: Uri? = null
+        try {
+            val packageManager = context.packageManager
+            var appName = "Xpense"
+            try {
+                val applicationInfo = packageManager.getApplicationInfo(context.packageName, 0)
+                appName = packageManager.getApplicationLabel(applicationInfo).toString()
+            } catch (e: PackageManager.NameNotFoundException) {
+                e.printStackTrace()
+            }
+
+            val time =
+                timeStamp!!.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_$time")
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/$appName")
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+
+            uri = resolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
+
+            uri?.let { it ->
+                val bitmap = _uiState.value.capturedBitmap?.asAndroidBitmap()
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                }
+
+                // mark as not pending so it becomes visible in gallery
+                contentValues.clear()
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(it, contentValues, null, null)
+            }
+        } catch (e: IOException) {
+            if (uri != null)
+                resolver.delete(uri, null, null)
+            e.printStackTrace()
+        }
     }
 }

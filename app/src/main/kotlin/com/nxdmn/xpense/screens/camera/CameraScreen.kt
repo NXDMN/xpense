@@ -180,7 +180,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                         if (cameraUiState.isCapturing) {
                             cameraViewModel.capturePhoto(context)
                         } else {
-                            cameraViewModel.savePhoto()
+                            cameraViewModel.savePhoto(context)
                         }
                     },
                 )
