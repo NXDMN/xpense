@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.nxdmn.xpense.helpers.toLocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -34,7 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.format.DateTimeFormatter
 
@@ -138,10 +137,12 @@ class CameraViewModel() : ViewModel() {
         timeStamp = null
     }
 
-    fun savePhoto(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isBusy = true) }
+    // make this suspend so this will be called with coroutinescope, which will suspend
+    // so the onNavigateBack only called when savePhoto done
+    suspend fun savePhoto(context: Context) {
+        _uiState.update { it.copy(isBusy = true) }
 
+        withContext(Dispatchers.IO) {
             val resolver = context.contentResolver
             var uri: Uri? = null
 
@@ -188,7 +189,8 @@ class CameraViewModel() : ViewModel() {
                 }
                 e.printStackTrace()
             }
-            _uiState.update { it.copy(isBusy = false) }
         }
+
+        _uiState.update { it.copy(isBusy = false) }
     }
 }

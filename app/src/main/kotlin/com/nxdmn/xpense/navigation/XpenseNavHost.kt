@@ -54,7 +54,7 @@ fun XpenseNavHost(
             onNavigateToCamera = { navController.navigateToCamera() },
             onNavigateBack = { navController.popBackStack() }
         )
-        cameraScreen()
+        cameraScreen(onNavigateBack = { navController.popBackStack() })
         settingsScreen(onNavigateToCategoryDetail = { categoryId ->
             navController.navigateToCategoryDetail(categoryId)
         })
@@ -128,10 +128,10 @@ fun NavGraphBuilder.expenseDetailScreen(
     }
 }
 
-fun NavGraphBuilder.cameraScreen() {
+fun NavGraphBuilder.cameraScreen(onNavigateBack: () -> Unit) {
     composable<Route.Camera> {
         val vm: CameraViewModel = viewModel()
-        CameraScreen(vm)
+        CameraScreen(vm, onNavigateBack)
     }
 }
 

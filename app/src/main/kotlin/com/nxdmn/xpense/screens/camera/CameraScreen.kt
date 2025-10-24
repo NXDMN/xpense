@@ -39,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,9 +57,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
-fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
+fun CameraScreen(cameraViewModel: CameraViewModel = viewModel(), onNavigateBack: () -> Unit = {}) {
     val activity = LocalActivity.current as ComponentActivity
     DisposableEffect(activity) {
         activity.enableEdgeToEdge(
@@ -161,6 +163,7 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
             )
         }
 
+        val scope = rememberCoroutineScope()
         Box(
             Modifier
                 .windowInsetsPadding(WindowInsets.safeContent)
@@ -181,7 +184,10 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel()) {
                         if (cameraUiState.isCapturing) {
                             cameraViewModel.capturePhoto(context)
                         } else {
-                            cameraViewModel.savePhoto(context)
+                            scope.launch {
+                                cameraViewModel.savePhoto(context)
+                                onNavigateBack()
+                            }
                         }
                     },
                 )
