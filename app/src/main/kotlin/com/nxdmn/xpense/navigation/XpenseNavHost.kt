@@ -5,9 +5,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,6 +24,10 @@ import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
 import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
 import com.nxdmn.xpense.screens.setting.SettingsScreen
 import com.nxdmn.xpense.screens.setting.SettingsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -100,30 +101,26 @@ suspend fun <T> NavHostController.navigateToCamera(): T? =
             currentBackStackEntry
                 ?: throw IllegalStateException("No current back stack entry found")
 
-        navigate(Route.Camera) {
-            launchSingleTop = true
-        }
-
-        // use object so can remove itself with this reference
-        val lifecycleObserver = object : LifecycleEventObserver {
-            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                if (event == Lifecycle.Event.ON_START) {
-                    val result = currentNavEntry.savedStateHandle.get<T?>(RESULT_KEY)
+        val resultflow =
+            currentNavEntry.savedStateHandle.getStateFlow<T?>(RESULT_KEY, initialValue = null)
+        val job = CoroutineScope(Dispatchers.Main.immediate).launch {
+            resultflow.collect { result ->
+                if (result != null) {
                     continuation.resume(result)
-                    currentNavEntry.savedStateHandle.remove<T>(RESULT_KEY)
-                    currentNavEntry.lifecycle.removeObserver(this)
+                    currentNavEntry.savedStateHandle.remove<Uri?>(RESULT_KEY)
+                    this.cancel()
                 }
             }
         }
 
-        currentNavEntry.lifecycle.addObserver(lifecycleObserver)
-
-        // Remove callback on cancellation
+        // Handle coroutine cancellation
         continuation.invokeOnCancellation {
-            currentNavEntry.savedStateHandle.remove<T>(RESULT_KEY)
-            currentNavEntry.lifecycle.removeObserver(lifecycleObserver)
+            job.cancel()
         }
-        // At this point the coroutine is suspended by suspendCancellableCoroutine until callback fires
+
+        navigate(Route.Camera) {
+            launchSingleTop = true
+        }
     }
 
 fun NavHostController.navigateToSetting() =
