@@ -139,13 +139,12 @@ class CameraViewModel() : ViewModel() {
 
     // make this suspend so this will be called with coroutinescope, which will suspend
     // so the onNavigateBack only called when savePhoto done
-    suspend fun savePhoto(context: Context) {
+    suspend fun savePhoto(context: Context): Uri? {
         _uiState.update { it.copy(isBusy = true) }
 
+        val resolver = context.contentResolver
+        var uri: Uri? = null
         withContext(Dispatchers.IO) {
-            val resolver = context.contentResolver
-            var uri: Uri? = null
-
             try {
                 val appName = try {
                     val packageManager = context.packageManager
@@ -192,6 +191,7 @@ class CameraViewModel() : ViewModel() {
         }
 
         _uiState.update { it.copy(isBusy = false) }
+        return uri
     }
 
     override fun onCleared() {

@@ -3,6 +3,7 @@ package com.nxdmn.xpense.screens.expenseDetail
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -76,7 +77,7 @@ import com.nxdmn.xpense.ui.states.rememberPermissionState
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
     expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory),
-    onNavigateToCamera: () -> Unit = {},
+    onNavigateToCamera: suspend () -> Uri?,
     onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
@@ -262,7 +263,9 @@ fun ExpenseDetailScreen(
                 val cameraPermissionState =
                     rememberPermissionState(
                         Manifest.permission.CAMERA,
-                        onGranted = { onNavigateToCamera() },
+                        onGranted = {
+                            expenseDetailViewModel.navigateToCameraForResult { onNavigateToCamera() }
+                        },
                         showPermissionDialog = { openPermissionDialog = true },
                         showPermissionDeniedDialog = { openPermissionDeniedDialog = true }
                     )
@@ -291,7 +294,7 @@ fun ExpenseDetailScreen(
                             else if (it == addImageOptions[1]) {
                                 when {
                                     cameraPermissionState.status == PackageManager.PERMISSION_GRANTED -> {
-                                        onNavigateToCamera()
+                                        expenseDetailViewModel.navigateToCameraForResult { onNavigateToCamera() }
                                     }
 
                                     cameraPermissionState.shouldShowRationale -> {

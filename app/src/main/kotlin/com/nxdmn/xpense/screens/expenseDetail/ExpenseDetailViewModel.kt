@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -171,6 +172,11 @@ class ExpenseDetailViewModel(
         _uiState.update {
             it.copy(images = _uiState.value.images - images)
         }
+    }
+
+    fun navigateToCameraForResult(onNavigateToCamera: suspend () -> Uri?) = viewModelScope.launch {
+        val uri = onNavigateToCamera()
+        addImage(uri.toString())
     }
 
     companion object {

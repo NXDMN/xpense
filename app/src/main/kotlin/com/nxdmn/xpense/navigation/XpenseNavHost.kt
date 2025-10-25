@@ -1,9 +1,13 @@
 package com.nxdmn.xpense.navigation
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -23,6 +27,10 @@ import com.nxdmn.xpense.screens.expenseList.ExpenseListScreen
 import com.nxdmn.xpense.screens.expenseList.ExpenseListViewModel
 import com.nxdmn.xpense.screens.setting.SettingsScreen
 import com.nxdmn.xpense.screens.setting.SettingsViewModel
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+const val RESULT_KEY = "RESULT_KEY"
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -54,7 +62,13 @@ fun XpenseNavHost(
             onNavigateToCamera = { navController.navigateToCamera() },
             onNavigateBack = { navController.popBackStack() }
         )
-        cameraScreen(onNavigateBack = { navController.popBackStack() })
+        cameraScreen(onNavigateBackWithResult = { uri ->
+            navController.previousBackStackEntry?.savedStateHandle?.set(
+                RESULT_KEY,
+                uri
+            )
+            navController.popBackStack()
+        })
         settingsScreen(onNavigateToCategoryDetail = { categoryId ->
             navController.navigateToCategoryDetail(categoryId)
         })
@@ -78,9 +92,39 @@ fun NavHostController.navigateToExpenseList() =
 fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
     this.navigateSingleTopTo(Route.ExpenseDetail(expenseId = expenseId))
 
-fun NavHostController.navigateToCamera() = this.navigate(Route.Camera) {
-    launchSingleTop = true
-}
+// since this coroutine is across different screens, make sure it is called in CoroutineScope that lives
+// longer than composable screen like viewModelScope
+suspend fun <T> NavHostController.navigateToCamera(): T? =
+    suspendCancellableCoroutine { continuation ->
+        val currentNavEntry =
+            currentBackStackEntry
+                ?: throw IllegalStateException("No current back stack entry found")
+
+        navigate(Route.Camera) {
+            launchSingleTop = true
+        }
+
+        // use object so can remove itself with this reference
+        val lifecycleObserver = object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_START) {
+                    val result = currentNavEntry.savedStateHandle.get<T?>(RESULT_KEY)
+                    continuation.resume(result)
+                    currentNavEntry.savedStateHandle.remove<T>(RESULT_KEY)
+                    currentNavEntry.lifecycle.removeObserver(this)
+                }
+            }
+        }
+
+        currentNavEntry.lifecycle.addObserver(lifecycleObserver)
+
+        // Remove callback on cancellation
+        continuation.invokeOnCancellation {
+            currentNavEntry.savedStateHandle.remove<T>(RESULT_KEY)
+            currentNavEntry.lifecycle.removeObserver(lifecycleObserver)
+        }
+        // At this point the coroutine is suspended by suspendCancellableCoroutine until callback fires
+    }
 
 fun NavHostController.navigateToSetting() =
     this.navigateSingleTopTo(Route.Settings)
@@ -106,7 +150,7 @@ fun NavGraphBuilder.expenseListScreen(
 
 fun NavGraphBuilder.expenseDetailScreen(
     appBarState: AppBarState,
-    onNavigateToCamera: () -> Unit,
+    onNavigateToCamera: suspend () -> Uri?,
     onNavigateBack: () -> Unit
 ) {
     composable<Route.ExpenseDetail> { navBackStackEntry ->
@@ -128,10 +172,10 @@ fun NavGraphBuilder.expenseDetailScreen(
     }
 }
 
-fun NavGraphBuilder.cameraScreen(onNavigateBack: () -> Unit) {
+fun NavGraphBuilder.cameraScreen(onNavigateBackWithResult: (Uri?) -> Unit) {
     composable<Route.Camera> {
         val vm: CameraViewModel = viewModel()
-        CameraScreen(vm, onNavigateBack)
+        CameraScreen(vm, onNavigateBackWithResult)
     }
 }
 

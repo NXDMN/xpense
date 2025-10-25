@@ -1,6 +1,7 @@
 package com.nxdmn.xpense.screens.camera
 
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
@@ -60,7 +61,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun CameraScreen(cameraViewModel: CameraViewModel = viewModel(), onNavigateBack: () -> Unit = {}) {
+fun CameraScreen(
+    cameraViewModel: CameraViewModel = viewModel(),
+    onNavigateBackWithResult: (Uri?) -> Unit
+) {
     val activity = LocalActivity.current as ComponentActivity
     DisposableEffect(activity) {
         activity.enableEdgeToEdge(
@@ -185,8 +189,8 @@ fun CameraScreen(cameraViewModel: CameraViewModel = viewModel(), onNavigateBack:
                             cameraViewModel.capturePhoto(context)
                         } else {
                             scope.launch {
-                                cameraViewModel.savePhoto(context)
-                                onNavigateBack()
+                                val uri = cameraViewModel.savePhoto(context)
+                                onNavigateBackWithResult(uri)
                             }
                         }
                     },
