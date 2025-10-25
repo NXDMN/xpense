@@ -193,4 +193,10 @@ class CameraViewModel() : ViewModel() {
 
         _uiState.update { it.copy(isBusy = false) }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        // clear bitmap
+        _uiState.update { it.copy(capturedBitmap = null) }
+    }
 }
