@@ -60,16 +60,10 @@ fun XpenseNavHost(
         )
         expenseDetailScreen(
             appBarState,
-            onNavigateToCamera = { navController.navigateToCamera() },
+            onNavigateToCamera = { navController.navigateForResult { navController.navigateToCamera() } },
             onNavigateBack = { navController.popBackStack() }
         )
-        cameraScreen(onNavigateBackWithResult = { uri ->
-            navController.previousBackStackEntry?.savedStateHandle?.set(
-                RESULT_KEY,
-                uri
-            )
-            navController.popBackStack()
-        })
+        cameraScreen(onNavigateBackWithResult = { navController.navigateBackWithResult(it) })
         settingsScreen(onNavigateToCategoryDetail = { categoryId ->
             navController.navigateToCategoryDetail(categoryId)
         })
@@ -93,9 +87,27 @@ fun NavHostController.navigateToExpenseList() =
 fun NavHostController.navigateToExpenseDetail(expenseId: Long? = null) =
     this.navigateSingleTopTo(Route.ExpenseDetail(expenseId = expenseId))
 
+fun NavHostController.navigateToCamera() =
+    this.navigate(Route.Camera) {
+        launchSingleTop = true
+    }
+
+fun NavHostController.navigateToSetting() =
+    this.navigateSingleTopTo(Route.Settings)
+
+fun NavHostController.navigateToCategoryDetail(categoryId: Long? = null) =
+    this.navigate(Route.CategoryDetail(categoryId = categoryId)) {
+        launchSingleTop = true
+    }
+
+fun <T> NavHostController.navigateBackWithResult(data: T?) {
+    previousBackStackEntry?.savedStateHandle?.set(RESULT_KEY, data)
+    popBackStack()
+}
+
 // since this coroutine is across different screens, make sure it is called in CoroutineScope that lives
 // longer than composable screen like viewModelScope
-suspend fun <T> NavHostController.navigateToCamera(): T? =
+suspend fun <T> NavHostController.navigateForResult(navigate: () -> Unit): T? =
     suspendCancellableCoroutine { continuation ->
         val currentNavEntry =
             currentBackStackEntry
@@ -107,7 +119,7 @@ suspend fun <T> NavHostController.navigateToCamera(): T? =
             resultflow.collect { result ->
                 if (result != null) {
                     continuation.resume(result)
-                    currentNavEntry.savedStateHandle.remove<Uri?>(RESULT_KEY)
+                    currentNavEntry.savedStateHandle.remove<T?>(RESULT_KEY)
                     this.cancel()
                 }
             }
@@ -118,17 +130,7 @@ suspend fun <T> NavHostController.navigateToCamera(): T? =
             job.cancel()
         }
 
-        navigate(Route.Camera) {
-            launchSingleTop = true
-        }
-    }
-
-fun NavHostController.navigateToSetting() =
-    this.navigateSingleTopTo(Route.Settings)
-
-fun NavHostController.navigateToCategoryDetail(categoryId: Long? = null) =
-    this.navigate(Route.CategoryDetail(categoryId = categoryId)) {
-        launchSingleTop = true
+        navigate()
     }
 
 fun NavGraphBuilder.expenseListScreen(
