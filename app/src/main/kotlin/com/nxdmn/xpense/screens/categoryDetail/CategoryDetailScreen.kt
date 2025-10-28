@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
+import com.nxdmn.xpense.helpers.isLight
 import com.nxdmn.xpense.ui.CategoryIcon
 import com.nxdmn.xpense.ui.components.ColorPicker
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
@@ -170,6 +172,13 @@ fun CategoryDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 CategoryIcon.entries.forEach { icon ->
+                    var backgroundColor = Color.Transparent
+                    var contentColor = LocalContentColor.current
+                    if (categoryDetailUiState.icon?.ordinal == icon.ordinal && categoryDetailUiState.color != null) {
+                        backgroundColor = Color(categoryDetailUiState.color!!)
+                        contentColor = if (backgroundColor.isLight()) Color.Black else Color.White
+                    }
+
                     Icon(
                         painterResource(icon.resId),
                         contentDescription = icon.name,
@@ -177,7 +186,7 @@ fun CategoryDetailScreen(
                             .let {
                                 if (categoryDetailUiState.icon?.ordinal == icon.ordinal) it.border(
                                     1.dp,
-                                    Color.Black
+                                    MaterialTheme.colorScheme.onBackground
                                 )
                                 else it
                             }
@@ -188,12 +197,9 @@ fun CategoryDetailScreen(
                                     categoryDetailViewModel.updateIcon(icon)
                                 }
                             )
-                            .background(
-                                if (categoryDetailUiState.icon?.ordinal == icon.ordinal && categoryDetailUiState.color != null)
-                                    Color(categoryDetailUiState.color!!)
-                                else Color.Transparent
-                            )
-                            .padding(5.dp)
+                            .background(backgroundColor)
+                            .padding(5.dp),
+                        tint = contentColor
                     )
                 }
             }

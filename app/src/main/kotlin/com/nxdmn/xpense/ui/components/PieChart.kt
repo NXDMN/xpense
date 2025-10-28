@@ -1,8 +1,10 @@
 package com.nxdmn.xpense.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +40,7 @@ fun PieChart(
         style = TextStyle.Default.copy(fontSize = 20.sp)
     )
     val textSize = textLayoutResult.size
+    val textColor = MaterialTheme.colorScheme.onBackground
 
     Canvas(
         modifier = modifier
@@ -80,7 +83,7 @@ fun PieChart(
 
         drawText(
             textMeasurer, text,
-            style = TextStyle.Default.copy(fontSize = 20.sp),
+            style = TextStyle.Default.copy(fontSize = 20.sp, color = textColor),
             topLeft = Offset(
                 (this.size.width - textSize.width) / 2f,
                 (this.size.height - textSize.height) / 2f

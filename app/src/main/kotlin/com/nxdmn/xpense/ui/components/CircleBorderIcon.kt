@@ -14,19 +14,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.nxdmn.xpense.helpers.isLight
 
 @Composable
 fun CircleBorderIcon(@DrawableRes resId: Int, name: String = "", color: Long) {
+    val backgroundColor = Color(color)
+    val contentColor = if (backgroundColor.isLight()) Color.Black else Color.White
+
     Icon(
         painterResource(id = resId),
         contentDescription = name,
         modifier = Modifier
             .size(36.dp)
             .border(
-                1.dp, Color(color), CircleShape
+                1.dp, backgroundColor, CircleShape
             )
             .clip(CircleShape)
-            .background(Color(color))
-            .padding(5.dp)
+            .background(backgroundColor)
+            .padding(5.dp),
+        tint = contentColor
     )
 }

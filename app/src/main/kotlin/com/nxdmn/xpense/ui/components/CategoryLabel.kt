@@ -42,7 +42,7 @@ fun CategoryLabel(
 
     Row(
         modifier = Modifier
-            .border(1.dp, Color.Black, shape)
+            .border(1.dp, MaterialTheme.colorScheme.onBackground, shape)
             .clip(shape)
             .clickable(
                 remember { MutableInteractionSource() },
