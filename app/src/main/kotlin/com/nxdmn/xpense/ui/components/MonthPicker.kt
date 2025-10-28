@@ -93,9 +93,11 @@ fun MonthPicker(state: DatePickerState) {
                 columns = GridCells.Fixed(3),
                 modifier = Modifier
                     .requiredHeight(
-                        48.dp * 5 - DividerDefaults.Thickness
+                        // 48dp is item height, 5 is 4 item + space (16dp * 3)
+                        // 24dp is the padding top + bottom
+                        48.dp * 5 + 24.dp
                     )
-                    .padding(horizontal = 12.dp)
+                    .padding(12.dp)
                     .background(color = containerColor),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
