@@ -58,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
+import com.nxdmn.xpense.helpers.isLight
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.ui.CategoryIcon
@@ -371,11 +372,14 @@ fun ExpenseCard(
     expense: ExpenseModel,
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
+    val backgroundColor = Color(expense.category.color)
+    val contentColor = if (backgroundColor.isLight()) Color.Black else Color.White
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        colors = CardDefaults.cardColors(containerColor = Color(expense.category.color)),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
         ),
@@ -390,11 +394,13 @@ fun ExpenseCard(
                     contentDescription = expense.category.name,
                     modifier = Modifier
                         .height(40.dp)
-                        .padding(end = 10.dp)
+                        .padding(end = 10.dp),
+                    tint = contentColor
                 )
                 Text(
                     "$currencySymbol ${"%.2f".format(expense.amount)}",
-                    fontSize = 20.sp
+                    fontSize = 20.sp,
+                    color = contentColor
                 )
             }
         }
