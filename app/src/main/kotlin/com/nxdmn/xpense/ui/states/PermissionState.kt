@@ -3,7 +3,6 @@ package com.nxdmn.xpense.ui.states
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +21,8 @@ import androidx.core.content.ContextCompat
 @Stable
 class PermissionState(
     val permission: String,
-    val launcher: ActivityResultLauncher<String>
+    val launcher: ActivityResultLauncher<String>,
+    val showPermissionDialog: () -> Unit = {},
 ) {
     var status by mutableIntStateOf(0)
         private set
@@ -43,8 +43,12 @@ class PermissionState(
         } ?: false
     }
 
-    fun requestPermission() {
-        launcher.launch(permission)
+    fun requestPermission(showPermissionRationale: Boolean = true) {
+        if (showPermissionRationale && shouldShowRationale) {
+            showPermissionDialog()
+        } else {
+            launcher.launch(permission)
+        }
     }
 }
 
@@ -74,7 +78,7 @@ fun rememberPermissionState(
             }
         }
 
-    state = remember { PermissionState(permission, launcher) }
+    state = remember { PermissionState(permission, launcher, showPermissionDialog) }
 
     // Initialize the status, shouldShowRationale and
     // keep status fresh if context changes (new Activity after config change)

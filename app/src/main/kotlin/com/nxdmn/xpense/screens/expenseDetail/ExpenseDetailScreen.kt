@@ -303,18 +303,7 @@ fun ExpenseDetailScreen(
                                 )
                             )
                             else if (it == addImageOptions[1]) {
-                                when {
-                                    cameraPermissionState.status == PackageManager.PERMISSION_GRANTED -> {
-                                        expenseDetailViewModel.navigateToCameraForResult { onNavigateToCamera() }
-                                    }
-
-                                    cameraPermissionState.shouldShowRationale -> {
-                                        openPermissionDialog = true
-                                    }
-
-                                    else -> cameraPermissionState.requestPermission()
-                                }
-
+                                cameraPermissionState.requestPermission()
                             }
                         },
                         onDismiss = { openAddImageDialog = false }
@@ -328,7 +317,7 @@ fun ExpenseDetailScreen(
                         description = "We need access to your camera so you can take photos directly in the app. We’ll only use it for this purpose.",
                         onDismiss = { openPermissionDialog = false },
                         onConfirm = {
-                            cameraPermissionState.requestPermission()
+                            cameraPermissionState.requestPermission(showPermissionRationale = false)
                         }
                     )
 
