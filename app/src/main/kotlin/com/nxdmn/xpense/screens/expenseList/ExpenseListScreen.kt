@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -104,7 +103,6 @@ fun ExpenseListScreen(
                 },
             )
         },
-        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             SecondaryTabRow(selectedTabIndex = expenseListUiState.viewMode.ordinal) {
@@ -422,7 +420,6 @@ fun TestPreview() {
                 },
             )
         },
-        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             val selectedmode = ViewMode.MONTH

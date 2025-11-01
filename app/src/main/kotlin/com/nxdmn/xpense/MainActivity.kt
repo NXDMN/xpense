@@ -55,7 +55,8 @@ private fun XpenseApp() {
 
         Scaffold(
             modifier = Modifier.imePadding(),
-            contentWindowInsets = WindowInsets(0.dp),
+            // Since every screen also use Scaffold, so no need set inset here
+            contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             bottomBar = {
                 if (appBarState.currentScreen != Route.Camera)
                     BottomAppBar(
