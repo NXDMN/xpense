@@ -323,6 +323,7 @@ fun ExpenseDetailScreen(
 
 
                 appBarState.saveExpenseDetail = {
+                    focusManager.clearFocus()
                     if (expenseDetailViewModel.saveExpense()) {
                         onNavigateBack()
                     }
