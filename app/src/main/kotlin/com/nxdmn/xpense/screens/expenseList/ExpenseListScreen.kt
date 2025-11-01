@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.screens.expenseList
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -8,10 +9,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -104,7 +111,11 @@ fun ExpenseListScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(
+            modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
+                .verticalScroll(rememberScrollState())
+        ) {
             SecondaryTabRow(selectedTabIndex = expenseListUiState.viewMode.ordinal) {
                 ViewMode.entries.forEach { mode ->
                     Tab(
@@ -119,6 +130,12 @@ fun ExpenseListScreen(
 
             Column(
                 modifier = Modifier
+                    .let {
+                        val configuration = LocalConfiguration.current
+                        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                            it.windowInsetsPadding(WindowInsets.safeContent.only(WindowInsetsSides.Horizontal))
+                        } else it
+                    }
                     .padding(top = 20.dp)
                     .fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.background),
@@ -263,10 +280,7 @@ fun ExpenseListSectionByCategory(
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
     Column(
-        modifier = Modifier
-            .padding(horizontal = 10.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 16.dp),
+        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         expensesGroupedByCategory.forEach {
@@ -311,10 +325,7 @@ fun ExpenseListSectionByDate(
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
     Column(
-        modifier = Modifier
-            .padding(horizontal = 10.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 16.dp),
+        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         var sortedGroup: Map<Any, List<ExpenseModel>> = expensesGroupedByDate
