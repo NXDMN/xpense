@@ -173,9 +173,13 @@ fun CameraScreen(
                 .windowInsetsPadding(WindowInsets.safeContent)
                 .let {
                     if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        it.align(Alignment.CenterEnd)
+                        it
+                            .align(Alignment.CenterEnd)
+                            .offset((-40).dp, 0.dp)
                     } else {
-                        it.align(Alignment.BottomCenter)
+                        it
+                            .align(Alignment.BottomCenter)
+                            .offset(0.dp, (-40).dp)
                     }
                 }
                 .size(60.dp)
@@ -202,7 +206,8 @@ fun CameraScreen(
                     contentDescription = "Confirm photo",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(36.dp)
+                        .size(36.dp),
+                    tint = Color.Black
                 )
         }
 
@@ -213,9 +218,9 @@ fun CameraScreen(
                     .align(Alignment.BottomEnd)
                     .let {
                         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            it.offset(y = (-40).dp)
+                            it.offset((-40).dp, (-40).dp)
                         } else {
-                            it.offset((-40).dp)
+                            it.offset((-40).dp, (-40).dp)
                         }
                     }
                     .background(Color.White, CircleShape),
@@ -223,7 +228,8 @@ fun CameraScreen(
             ) {
                 Icon(
                     painterResource(R.drawable.baseline_replay_24),
-                    contentDescription = "Retake photo"
+                    contentDescription = "Retake photo",
+                    tint = Color.Black
                 )
             }
 
