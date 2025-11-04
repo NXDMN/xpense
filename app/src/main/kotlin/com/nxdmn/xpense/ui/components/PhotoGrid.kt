@@ -1,5 +1,6 @@
 package com.nxdmn.xpense.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,7 +11,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,10 +35,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.helpers.readImageFromPath
@@ -93,6 +98,31 @@ private fun RowScope.ImageItem(
     onLongPress: () -> Unit,
     onTap: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+
+    var openViewImageDialog by remember { mutableStateOf(false) }
+    if (openViewImageDialog)
+        Dialog(
+            onDismissRequest = { openViewImageDialog = false },
+        ) {
+            val imageBitmap = remember(imagePath) { readImageFromPath(context, imagePath!!) }
+            val imageRatio = imageBitmap!!.width.toFloat() / imageBitmap.height.toFloat()
+            Image(
+                imageBitmap,
+                contentDescription = "",
+                modifier = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(imageRatio)
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(imageRatio)
+                }
+            )
+        }
+
     Box(
         modifier = Modifier
             .weight(1f)
@@ -103,6 +133,9 @@ private fun RowScope.ImageItem(
                     it
                         .pointerInput(inSelectionMode) {
                             detectTapGestures(
+                                onTap = {
+                                    openViewImageDialog = true
+                                },
                                 onLongPress = {
                                     onLongPress()
                                 },
@@ -144,7 +177,6 @@ private fun RowScope.ImageItem(
         }
 
         if (imagePath != null) {
-            val context = LocalContext.current
             val imageBitmap = remember(imagePath) { readImageFromPath(context, imagePath) }
             Image(
                 imageBitmap!!,
