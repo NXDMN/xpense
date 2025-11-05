@@ -30,8 +30,8 @@ android {
         applicationId = "com.nxdmn.xpense"
         minSdk = 29
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.0"
+        versionCode = 16
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
