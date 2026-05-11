@@ -4,7 +4,6 @@ import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
@@ -81,11 +80,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
-        }
-    }
+
     buildFeatures {
         compose = true
     }
@@ -98,13 +93,19 @@ android {
 
     sourceSets {
         // Adds exported schema location as test app assets.
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+        getByName("androidTest").assets.directories += "$projectDir/schemas"
     }
+}
 
-    // For Room database
-    room {
-        schemaDirectory("$projectDir/schemas")
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_11
     }
+}
+
+// For Room database
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
