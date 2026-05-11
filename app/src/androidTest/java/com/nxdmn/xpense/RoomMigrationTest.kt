@@ -28,7 +28,7 @@ class RoomMigrationTest {
     @Test
     @Throws(IOException::class)
     fun migrateAll() {
-        // Create earliest version of the database.
+        // Create the earliest version of the database.
         helper.createDatabase(testDb, 1).apply {
             close()
         }
@@ -67,11 +67,11 @@ class RoomMigrationTest {
 
         // MigrationTestHelper automatically verifies the schema changes,
         // but you need to validate that the data was migrated properly.
-        val cursor = db.query("SELECT * FROM ExpenseEntity WHERE images = 'image1'")
+        val cursor = db.query("SELECT * FROM ExpenseEntity WHERE images = '[\"image1\"]'")
         assert(cursor.count == 1)
         cursor.moveToFirst()
         assert(cursor.getString(4) == "This is remarks")
-        assert(cursor.getString(5) == "image1")
+        assert(cursor.getString(5) == "[\"image1\"]")
         cursor.close()
 
         db.close()
