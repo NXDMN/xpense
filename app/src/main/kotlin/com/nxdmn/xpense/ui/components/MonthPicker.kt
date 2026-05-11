@@ -22,12 +22,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -50,8 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nxdmn.xpense.R
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.helpers.toLocalDate
 import java.time.LocalDate
@@ -199,7 +198,7 @@ private fun YearPickerMenuButton(
         content()
         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
         Icon(
-            Icons.Filled.ArrowDropDown,
+            painterResource(R.drawable.baseline_arrow_drop_down_24),
             contentDescription = "YearPickerMenuButtonDropDown",
             Modifier.rotate(if (expanded) 180f else 0f)
         )

@@ -7,10 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -66,15 +62,18 @@ private fun XpenseApp() {
                                 onClick = { navController.navigateToExpenseList() }
                             ) {
                                 Icon(
-                                    Icons.AutoMirrored.Filled.List,
-                                    contentDescription = "Expense List"
+                                    painterResource(R.drawable.baseline_list_24),
+                                    contentDescription = "Expense List",
                                 )
                             }
                             IconButton(
                                 enabled = appBarState.currentScreen != Route.Settings,
                                 onClick = { navController.navigateToSetting() }
                             ) {
-                                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                                Icon(
+                                    painterResource(R.drawable.baseline_settings_24),
+                                    contentDescription = "Settings"
+                                )
                             }
                         },
                         floatingActionButton = {
@@ -95,7 +94,10 @@ private fun XpenseApp() {
                                         navController.navigateToExpenseDetail()
                                     }
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add")
+                                    Icon(
+                                        painterResource(R.drawable.outline_add_24),
+                                        contentDescription = "Add"
+                                    )
                                 }
                             }
                         },

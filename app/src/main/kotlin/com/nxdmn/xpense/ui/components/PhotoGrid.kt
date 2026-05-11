@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -161,7 +159,7 @@ private fun RowScope.ImageItem(
     {
         if (inSelectionMode && isSelected) {
             Icon(
-                Icons.Default.Check,
+                painterResource(R.drawable.outline_check_24),
                 contentDescription = "",
                 modifier = Modifier
                     .zIndex(1f)

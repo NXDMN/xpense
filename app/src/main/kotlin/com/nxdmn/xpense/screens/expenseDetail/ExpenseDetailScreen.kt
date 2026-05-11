@@ -2,7 +2,6 @@ package com.nxdmn.xpense.screens.expenseDetail
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,9 +27,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,12 +58,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.ui.CategoryIcon
@@ -111,7 +109,7 @@ fun ExpenseDetailScreen(
                         colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painterResource(R.drawable.outline_arrow_back_24),
                             contentDescription = "Back Button"
                         )
                     }
@@ -124,7 +122,10 @@ fun ExpenseDetailScreen(
                             },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                         ) {
-                            Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete")
+                            Icon(
+                                painterResource(R.drawable.baseline_delete_24),
+                                contentDescription = "Delete"
+                            )
                         }
                 }
             )
@@ -417,7 +418,7 @@ fun TestPreview() {
                 navigationIcon = {
                     IconButton(onClick = {}) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painterResource(R.drawable.outline_arrow_back_24),
                             contentDescription = "Localized description"
                         )
                     }

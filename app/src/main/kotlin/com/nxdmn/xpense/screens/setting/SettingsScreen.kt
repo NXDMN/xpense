@@ -22,13 +22,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -164,7 +157,7 @@ fun SettingsScreen(
                 title = "Favourite Category",
                 leading = {
                     Icon(
-                        Icons.Filled.Favorite,
+                        painterResource(R.drawable.baseline_favorite_24),
                         contentDescription = "Favourite Category",
                         modifier = Modifier.size(36.dp)
                     )
@@ -181,7 +174,7 @@ fun SettingsScreen(
                                     settingsViewModel.removeFavouriteCategory()
                                 }) {
                                 Icon(
-                                    Icons.Filled.Clear,
+                                    painterResource(R.drawable.baseline_clear_24),
                                     contentDescription = "Remove Favourite Category"
                                 )
                             }
@@ -277,10 +270,13 @@ fun CategoryList(
                 IconButton(onClick = {
                     onNavigateToCategoryDetail(null)
                 }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Category")
+                    Icon(
+                        painterResource(R.drawable.outline_add_24),
+                        contentDescription = "Add Category"
+                    )
                 }
                 Icon(
-                    Icons.AutoMirrored.Sharp.KeyboardArrowRight,
+                    painterResource(R.drawable.sharp_keyboard_arrow_right_24),
                     contentDescription = "Right Arrow",
                     modifier = Modifier.rotate(if (isExpanded) 90f else 0f)
                 )
@@ -323,12 +319,18 @@ fun CategoryList(
                             IconButton(onClick = {
                                 openDeleteDialog = true
                             }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete Category")
+                                Icon(
+                                    painterResource(R.drawable.baseline_delete_24),
+                                    contentDescription = "Delete Category"
+                                )
                             }
                             IconButton(onClick = {
                                 onNavigateToCategoryDetail(it.id)
                             }) {
-                                Icon(Icons.Filled.Edit, contentDescription = "Edit Category")
+                                Icon(
+                                    painterResource(R.drawable.baseline_edit_24),
+                                    contentDescription = "Edit Category"
+                                )
                             }
                         }
                     },
@@ -379,10 +381,13 @@ fun TestPreview() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = {}) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add Category")
+                            Icon(
+                                painterResource(R.drawable.outline_add_24),
+                                contentDescription = "Add Category"
+                            )
                         }
                         Icon(
-                            Icons.AutoMirrored.Sharp.KeyboardArrowRight,
+                            painterResource(R.drawable.sharp_keyboard_arrow_right_24),
                             contentDescription = "Right Arrow",
                             modifier = Modifier.rotate(0f)
                         )
@@ -437,7 +442,7 @@ fun TestPreview() {
                 title = "Favourite Category",
                 leading = {
                     Icon(
-                        Icons.Filled.Favorite,
+                        painterResource(R.drawable.baseline_favorite_24),
                         contentDescription = "Favourite Category",
                         modifier = Modifier.size(36.dp)
                     )

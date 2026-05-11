@@ -28,8 +28,6 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -202,7 +200,7 @@ fun CameraScreen(
         ) {
             if (!cameraUiState.isCapturing)
                 Icon(
-                    Icons.Default.Check,
+                    painterResource(R.drawable.outline_check_24),
                     contentDescription = "Confirm photo",
                     modifier = Modifier
                         .align(Alignment.Center)
