@@ -44,9 +44,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun XpenseApp() {
+fun XpenseApp(navController: NavHostController = rememberNavController()) {
     XpenseTheme {
-        val navController = rememberNavController()
+
         val appBarState = rememberAppBarState(navController)
 
         Scaffold(

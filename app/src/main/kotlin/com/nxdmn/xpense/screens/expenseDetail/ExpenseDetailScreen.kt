@@ -59,6 +59,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -91,6 +93,7 @@ fun ExpenseDetailScreen(
     val focusManager = LocalFocusManager.current
 
     Scaffold(
+        Modifier.semantics { contentDescription = "ExpenseDetail" },
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(

@@ -41,6 +41,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "nav" }
+androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "nav" }
 androidx-datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobufKotlinLite" }
 androidx-camera-compose = { group = "androidx.camera", name = "camera-compose", version.ref = "camerax" }

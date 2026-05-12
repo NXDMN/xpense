@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.nxdmn.xpense.AppBarState
+import com.nxdmn.xpense.rememberAppBarState
 import com.nxdmn.xpense.screens.camera.CameraScreen
 import com.nxdmn.xpense.screens.camera.CameraViewModel
 import com.nxdmn.xpense.screens.categoryDetail.CategoryDetailScreen
@@ -37,8 +38,8 @@ const val RESULT_KEY = "RESULT_KEY"
 @Composable
 fun XpenseNavHost(
     navController: NavHostController,
-    modifier: Modifier,
-    appBarState: AppBarState,
+    modifier: Modifier = Modifier,
+    appBarState: AppBarState = rememberAppBarState(navController),
 ) {
 //    navController.addOnDestinationChangedListener { controller, _, _ ->
 //        val routes = controller
