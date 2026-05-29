@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
+import com.nxdmn.xpense.navigation.CategoryDetail
 import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -89,12 +89,10 @@ class CategoryDetailViewModel(
     }
 
     companion object {
-        val CATEGORY_ID_KEY = object : CreationExtras.Key<Long?> {}
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(navKey: CategoryDetail? = null): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val repo = (this[APPLICATION_KEY] as MainApplication).categoryRepository
-                val categoryId = this[CATEGORY_ID_KEY]
-                CategoryDetailViewModel(repo, categoryId)
+                CategoryDetailViewModel(repo, navKey?.categoryId)
             }
         }
     }

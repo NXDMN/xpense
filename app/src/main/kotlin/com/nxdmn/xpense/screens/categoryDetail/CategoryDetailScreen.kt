@@ -62,7 +62,7 @@ import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CategoryDetailScreen(
-    categoryDetailViewModel: CategoryDetailViewModel = viewModel(factory = CategoryDetailViewModel.Factory),
+    categoryDetailViewModel: CategoryDetailViewModel = viewModel(factory = CategoryDetailViewModel.Factory()),
     onNavigateBack: () -> Unit = {}
 ) {
     val categoryDetailUiState by categoryDetailViewModel.uiState.collectAsState()

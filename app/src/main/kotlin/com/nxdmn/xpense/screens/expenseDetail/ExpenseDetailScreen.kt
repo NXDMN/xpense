@@ -82,8 +82,8 @@ import com.nxdmn.xpense.ui.states.rememberPermissionState
 @Composable
 fun ExpenseDetailScreen(
     appBarState: AppBarState,
-    expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory),
-    onNavigateToCamera: suspend () -> Uri?,
+    expenseDetailViewModel: ExpenseDetailViewModel = viewModel(factory = ExpenseDetailViewModel.Factory()),
+    onNavigateToCamera: () -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
@@ -279,7 +279,7 @@ fun ExpenseDetailScreen(
                     rememberPermissionState(
                         Manifest.permission.CAMERA,
                         onGranted = {
-                            expenseDetailViewModel.navigateToCameraForResult { onNavigateToCamera() }
+                            onNavigateToCamera()
                         },
                         showPermissionDialog = { openPermissionDialog = true },
                         showPermissionDeniedDialog = { openPermissionDeniedDialog = true }

@@ -1,11 +1,9 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
@@ -15,6 +13,7 @@ import com.nxdmn.xpense.data.models.ExpenseModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.toLocalDate
+import com.nxdmn.xpense.navigation.ExpenseDetail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -174,28 +173,23 @@ class ExpenseDetailViewModel(
         }
     }
 
-    fun navigateToCameraForResult(onNavigateToCamera: suspend () -> Uri?) = viewModelScope.launch {
-        val uri = onNavigateToCamera()
-        addImage(uri.toString())
-    }
 
     companion object {
-        val EXPENSE_ID_KEY = object : CreationExtras.Key<Long?> {}
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val app = this[APPLICATION_KEY] as MainApplication
-                val expenseRepo = app.expenseRepository
-                val categoryRepo = app.categoryRepository
-                val ds = app.userPrefsDataStore
+        fun Factory(navKey: ExpenseDetail? = null): ViewModelProvider.Factory =
+            viewModelFactory {
+                initializer {
+                    val app = this[APPLICATION_KEY] as MainApplication
+                    val expenseRepo = app.expenseRepository
+                    val categoryRepo = app.categoryRepository
+                    val ds = app.userPrefsDataStore
 
-                val expenseId = this[EXPENSE_ID_KEY]
-                ExpenseDetailViewModel(
-                    expenseRepository = expenseRepo,
-                    categoryRepository = categoryRepo,
-                    dataStore = ds,
-                    expenseId = expenseId,
-                )
+                    ExpenseDetailViewModel(
+                        expenseRepository = expenseRepo,
+                        categoryRepository = categoryRepo,
+                        dataStore = ds,
+                        expenseId = navKey?.expenseId,
+                    )
+                }
             }
-        }
     }
 }

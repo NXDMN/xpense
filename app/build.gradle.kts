@@ -121,7 +121,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.room.runtime)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.androidx.navigation)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.datastore)
     implementation(libs.protobuf.kotlin.lite)
@@ -135,7 +137,6 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.androidx.navigation.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

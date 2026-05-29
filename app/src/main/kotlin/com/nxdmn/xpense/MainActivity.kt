@@ -18,17 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.nxdmn.xpense.navigation.Route
+import com.nxdmn.xpense.navigation.Camera
+import com.nxdmn.xpense.navigation.CategoryDetail
+import com.nxdmn.xpense.navigation.ExpenseDetail
+import com.nxdmn.xpense.navigation.ExpenseList
+import com.nxdmn.xpense.navigation.Navigator
+import com.nxdmn.xpense.navigation.Settings
 import com.nxdmn.xpense.navigation.XpenseNavHost
-import com.nxdmn.xpense.navigation.navigateToExpenseDetail
-import com.nxdmn.xpense.navigation.navigateToExpenseList
-import com.nxdmn.xpense.navigation.navigateToSetting
-import com.nxdmn.xpense.navigation.routes
+import com.nxdmn.xpense.navigation.rememberNavigationState
 import com.nxdmn.xpense.ui.theme.XpenseTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,22 +41,28 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun XpenseApp(navController: NavHostController = rememberNavController()) {
+fun XpenseApp() {
     XpenseTheme {
+        val navigationState = rememberNavigationState(
+            startRoute = ExpenseList,
+            topLevelRoutes = setOf(ExpenseList, Settings),
+        )
+        val navigator = remember { Navigator(navigationState) }
+        val currentScreen = navigationState.backStacks[navigationState.topLevelRoute]?.last()
 
-        val appBarState = rememberAppBarState(navController)
+        val appBarState = rememberAppBarState()
 
         Scaffold(
             modifier = Modifier.imePadding(),
             // Since every screen also use Scaffold, so no need set inset here
             contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             bottomBar = {
-                if (appBarState.currentScreen != Route.Camera)
+                if (currentScreen != Camera && currentScreen !is CategoryDetail)
                     BottomAppBar(
                         actions = {
                             IconButton(
-                                enabled = appBarState.currentScreen != Route.ExpenseList,
-                                onClick = { navController.navigateToExpenseList() }
+                                enabled = currentScreen != ExpenseList,
+                                onClick = { navigator.navigate(ExpenseList) }
                             ) {
                                 Icon(
                                     painterResource(R.drawable.baseline_list_24),
@@ -67,8 +70,8 @@ fun XpenseApp(navController: NavHostController = rememberNavController()) {
                                 )
                             }
                             IconButton(
-                                enabled = appBarState.currentScreen != Route.Settings,
-                                onClick = { navController.navigateToSetting() }
+                                enabled = currentScreen != Settings,
+                                onClick = { navigator.navigate(Settings) }
                             ) {
                                 Icon(
                                     painterResource(R.drawable.baseline_settings_24),
@@ -77,7 +80,7 @@ fun XpenseApp(navController: NavHostController = rememberNavController()) {
                             }
                         },
                         floatingActionButton = {
-                            if (appBarState.currentScreen == Route.ExpenseDetail()) {
+                            if (currentScreen is ExpenseDetail) {
                                 FloatingActionButton(
                                     onClick = {
                                         appBarState.saveExpenseDetail?.let { it() }
@@ -91,7 +94,7 @@ fun XpenseApp(navController: NavHostController = rememberNavController()) {
                             } else {
                                 FloatingActionButton(
                                     onClick = {
-                                        navController.navigateToExpenseDetail()
+                                        navigator.navigate(ExpenseDetail())
                                     }
                                 ) {
                                     Icon(
@@ -105,7 +108,8 @@ fun XpenseApp(navController: NavHostController = rememberNavController()) {
             },
         ) { innerPadding ->
             XpenseNavHost(
-                navController = navController,
+                navigator = navigator,
+                navigationState = navigationState,
                 modifier = Modifier.padding(innerPadding),
                 appBarState = appBarState,
             )
@@ -115,19 +119,11 @@ fun XpenseApp(navController: NavHostController = rememberNavController()) {
 }
 
 @Stable
-class AppBarState(private val navController: NavHostController) {
-    private val currentDestination: NavDestination?
-        @Composable get() = navController.currentBackStackEntryAsState().value?.destination
-
-    val currentScreen
-        @Composable get() = routes.find { route ->
-            currentDestination?.hasRoute(route::class) == true
-        } ?: Route.ExpenseList
-
+class AppBarState {
     var saveExpenseDetail: (() -> Unit)? = null
 }
 
 @Composable
-fun rememberAppBarState(navController: NavHostController): AppBarState = remember {
-    AppBarState(navController)
+fun rememberAppBarState(): AppBarState = remember {
+    AppBarState()
 }
