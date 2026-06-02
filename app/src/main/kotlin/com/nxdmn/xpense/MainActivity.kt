@@ -22,6 +22,7 @@ import com.nxdmn.xpense.navigation.Camera
 import com.nxdmn.xpense.navigation.CategoryDetail
 import com.nxdmn.xpense.navigation.ExpenseDetail
 import com.nxdmn.xpense.navigation.ExpenseList
+import com.nxdmn.xpense.navigation.NavigationState
 import com.nxdmn.xpense.navigation.Navigator
 import com.nxdmn.xpense.navigation.Settings
 import com.nxdmn.xpense.navigation.XpenseNavHost
@@ -41,13 +42,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun XpenseApp() {
+fun XpenseApp(
+    navigationState: NavigationState = rememberNavigationState(
+        startRoute = ExpenseList,
+        topLevelRoutes = setOf(ExpenseList, Settings),
+    ),
+    navigator: Navigator = remember { Navigator(navigationState) }
+) {
     XpenseTheme {
-        val navigationState = rememberNavigationState(
-            startRoute = ExpenseList,
-            topLevelRoutes = setOf(ExpenseList, Settings),
-        )
-        val navigator = remember { Navigator(navigationState) }
         val currentScreen = navigationState.backStacks[navigationState.topLevelRoute]?.last()
 
         val appBarState = rememberAppBarState()
