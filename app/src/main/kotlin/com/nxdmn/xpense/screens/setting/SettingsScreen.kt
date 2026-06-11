@@ -252,7 +252,7 @@ fun SettingsListItem(
 fun CategoryList(
     categoryList: List<CategoryModel>,
     onNavigateToCategoryDetail: (Long?) -> Unit,
-    deleteCategory: (CategoryModel) -> Unit
+    deleteCategory: (Long) -> Unit
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -303,7 +303,7 @@ fun CategoryList(
                         description = "Are you sure you want to delete this category?",
                         onDismiss = { openDeleteDialog = false },
                         onConfirmClicked = {
-                            deleteCategory(it)
+                            deleteCategory(it.id)
                             openDeleteDialog = false
                         },
                     )

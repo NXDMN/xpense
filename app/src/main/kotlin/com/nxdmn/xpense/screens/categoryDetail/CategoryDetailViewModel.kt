@@ -76,16 +76,8 @@ class CategoryDetailViewModel(
         }
     }
 
-    fun deleteCategory() {
-        val category = CategoryModel(
-            id = categoryId ?: 0,
-            name = _uiState.value.name!!,
-            icon = _uiState.value.icon!!,
-            color = _uiState.value.color!!
-        )
-        viewModelScope.launch {
-            repository.deleteCategory(category)
-        }
+    fun deleteCategory() = viewModelScope.launch {
+        repository.deleteCategory(categoryId!!)
     }
 
     companion object {

@@ -123,18 +123,8 @@ class ExpenseDetailViewModel(
         return true
     }
 
-    fun deleteExpense() {
-        val expense = ExpenseModel(
-            id = expenseId ?: 0,
-            amount = _uiState.value.amount,
-            date = _uiState.value.date,
-            category = _uiState.value.category!!,
-            remarks = _uiState.value.remarks,
-            images = _uiState.value.images
-        )
-        viewModelScope.launch {
-            expenseRepository.deleteExpense(expense)
-        }
+    fun deleteExpense() = viewModelScope.launch {
+        expenseRepository.deleteExpense(expenseId!!)
     }
 
     fun updateAmount(amount: String) {

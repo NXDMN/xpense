@@ -9,14 +9,14 @@ import kotlinx.coroutines.flow.map
 
 class ExpenseRoomDataSource(private val dao: ExpenseDao) : ExpenseDataSource {
     override fun getAllAsFlow(): Flow<List<ExpenseModel>> {
-        return dao.getExpenseWithCategoryAsFlow().map { list -> list.map { it.asModel() } }
+        return dao.getAllExpenseWithCategoryAsFlow().map { list -> list.map { it.asModel() } }
     }
 
-    override suspend fun findAll(): List<ExpenseModel> {
-        return dao.getExpenseWithCategory().map { it.asModel() }
+    override suspend fun getAll(): List<ExpenseModel> {
+        return dao.getAllExpenseWithCategory().map { it.asModel() }
     }
 
-    override suspend fun find(id: Long): ExpenseModel? {
+    override suspend fun get(id: Long): ExpenseModel? {
         return dao.getExpenseWithCategoryById(id)?.asModel()
     }
 
@@ -28,7 +28,7 @@ class ExpenseRoomDataSource(private val dao: ExpenseDao) : ExpenseDataSource {
         dao.update(expense.asEntity())
     }
 
-    override suspend fun delete(expense: ExpenseModel) {
-        dao.delete(expense.asEntity())
+    override suspend fun delete(id: Long) {
+        dao.deleteById(id)
     }
 }

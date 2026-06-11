@@ -6,22 +6,25 @@ import com.nxdmn.xpense.data.relations.CategoryWithExpenses
 
 @Dao
 interface CategoryDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun create(category: CategoryEntity)
-
     @Query("SELECT * FROM CategoryEntity")
-    suspend fun findAll(): List<CategoryEntity>
+    suspend fun getAll(): List<CategoryEntity>
+
+    @Transaction
+    @Query("SELECT * FROM CategoryEntity")
+    suspend fun getAllCategoryWithExpenses(): List<CategoryWithExpenses>
 
     @Query("SELECT * FROM CategoryEntity WHERE id = :id")
-    suspend fun findById(id: Long): CategoryEntity?
+    suspend fun getById(id: Long): CategoryEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun create(category: CategoryEntity)
 
     @Update
     suspend fun update(category: CategoryEntity)
 
+    @Query("DELETE FROM CategoryEntity WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
     @Delete
     suspend fun delete(category: CategoryEntity)
-
-    @Transaction
-    @Query("SELECT * FROM CategoryEntity")
-    suspend fun getCategoryWithExpenses(): List<CategoryWithExpenses>
 }

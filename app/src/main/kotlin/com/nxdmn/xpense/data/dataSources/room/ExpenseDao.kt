@@ -7,30 +7,33 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun create(expense: ExpenseEntity)
-
     @Query("SELECT * FROM ExpenseEntity")
-    suspend fun findAll(): List<ExpenseEntity>
+    suspend fun getAll(): List<ExpenseEntity>
+
+    @Transaction
+    @Query("SELECT * FROM ExpenseEntity")
+    suspend fun getAllExpenseWithCategory(): List<ExpenseWithCategory>
+
+    @Transaction
+    @Query("SELECT * FROM ExpenseEntity")
+    fun getAllExpenseWithCategoryAsFlow(): Flow<List<ExpenseWithCategory>>
 
     @Query("SELECT * FROM ExpenseEntity WHERE id = :id")
-    suspend fun findById(id: Long): ExpenseEntity?
+    suspend fun getById(id: Long): ExpenseEntity?
 
     @Transaction
     @Query("SELECT * FROM ExpenseEntity WHERE id = :id")
     suspend fun getExpenseWithCategoryById(id: Long): ExpenseWithCategory?
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun create(expense: ExpenseEntity)
+
     @Update
     suspend fun update(expense: ExpenseEntity)
 
+    @Query("DELETE FROM ExpenseEntity WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
     @Delete
     suspend fun delete(expense: ExpenseEntity)
-
-    @Transaction
-    @Query("SELECT * FROM ExpenseEntity")
-    suspend fun getExpenseWithCategory(): List<ExpenseWithCategory>
-
-    @Transaction
-    @Query("SELECT * FROM ExpenseEntity")
-    fun getExpenseWithCategoryAsFlow(): Flow<List<ExpenseWithCategory>>
 }

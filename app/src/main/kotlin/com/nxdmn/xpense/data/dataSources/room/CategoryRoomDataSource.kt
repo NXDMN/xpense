@@ -8,13 +8,12 @@ import com.nxdmn.xpense.data.relations.CategoryWithExpensesModel
 import com.nxdmn.xpense.data.relations.asModel
 
 class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource {
-
-    override suspend fun findAll(): List<CategoryModel> {
-        return dao.findAll().map { it.asModel() }
+    override suspend fun getAll(): List<CategoryModel> {
+        return dao.getAll().map { it.asModel() }
     }
 
-    override suspend fun find(id: Long): CategoryModel? {
-        return dao.findById(id)?.asModel()
+    override suspend fun get(id: Long): CategoryModel? {
+        return dao.getById(id)?.asModel()
     }
 
     override suspend fun create(category: CategoryModel) {
@@ -25,11 +24,7 @@ class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource 
         dao.update(category.asEntity())
     }
 
-    override suspend fun delete(category: CategoryModel) {
-        dao.delete(category.asEntity())
-    }
-
-    suspend fun getCategoryWithExpenses(): List<CategoryWithExpensesModel> {
-        return dao.getCategoryWithExpenses().map { it.asModel() }
+    override suspend fun delete(id: Long) {
+        dao.deleteById(id)
     }
 }

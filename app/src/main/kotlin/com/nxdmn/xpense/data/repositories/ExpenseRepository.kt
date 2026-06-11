@@ -19,7 +19,7 @@ class ExpenseRepository(
 
     suspend fun getAllExpenses(refresh: Boolean = false): List<ExpenseModel> {
         if (refresh || expenseList.isEmpty()) {
-            val data = expenseLocalDataSource.findAll()
+            val data = expenseLocalDataSource.getAll()
             // Thread-safe write to expenseList
             getAllExpensesMutex.withLock {
                 this.expenseList = data
@@ -31,12 +31,12 @@ class ExpenseRepository(
 
     suspend fun getExpense(id: Long): ExpenseModel? {
         return if (expenseList.isNotEmpty()) expenseList.find { it.id == id }
-        else expenseLocalDataSource.find(id)
+        else expenseLocalDataSource.get(id)
     }
 
     suspend fun updateExpense(expense: ExpenseModel) = expenseLocalDataSource.update(expense)
 
     suspend fun createExpense(expense: ExpenseModel) = expenseLocalDataSource.create(expense)
 
-    suspend fun deleteExpense(expense: ExpenseModel) = expenseLocalDataSource.delete(expense)
+    suspend fun deleteExpense(id: Long) = expenseLocalDataSource.delete(id)
 }

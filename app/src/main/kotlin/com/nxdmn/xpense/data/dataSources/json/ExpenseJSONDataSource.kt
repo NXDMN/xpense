@@ -27,9 +27,9 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
             emit(_expenses)
     }
 
-    override suspend fun findAll(): List<ExpenseModel> = _expenses.toList()
+    override suspend fun getAll(): List<ExpenseModel> = _expenses.toList()
 
-    override suspend fun find(id: Long): ExpenseModel? = _expenses.find { it.id == id }
+    override suspend fun get(id: Long): ExpenseModel? = _expenses.find { it.id == id }
 
     override suspend fun create(expense: ExpenseModel) {
         expense.id = Random().nextLong()
@@ -48,8 +48,8 @@ class ExpenseJSONDataSource(private val context: Context) : ExpenseDataSource {
         serialize()
     }
 
-    override suspend fun delete(expense: ExpenseModel) {
-        _expenses.removeIf { it.id == expense.id }
+    override suspend fun delete(id: Long) {
+        _expenses.removeIf { it.id == id }
         serialize()
     }
 

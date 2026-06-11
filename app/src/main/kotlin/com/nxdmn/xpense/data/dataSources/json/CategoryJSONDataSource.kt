@@ -6,7 +6,6 @@ import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.helpers.exists
 import com.nxdmn.xpense.helpers.read
 import com.nxdmn.xpense.helpers.write
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Random
 
@@ -21,9 +20,9 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
         }
     }
 
-    override suspend fun findAll(): List<CategoryModel> = _categories.toList()
+    override suspend fun getAll(): List<CategoryModel> = _categories.toList()
 
-    override suspend fun find(id: Long): CategoryModel? = _categories.find { it.id == id }
+    override suspend fun get(id: Long): CategoryModel? = _categories.find { it.id == id }
 
     override suspend fun create(category: CategoryModel) {
         category.id = Random().nextLong()
@@ -40,8 +39,8 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
         serialize()
     }
 
-    override suspend fun delete(category: CategoryModel) {
-        _categories.removeIf { it.id == category.id }
+    override suspend fun delete(id: Long) {
+        _categories.removeIf { it.id == id }
         serialize()
     }
 

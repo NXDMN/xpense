@@ -17,7 +17,7 @@ class CategoryRepository(
 
     suspend fun getAllCategories(refresh: Boolean = false): List<CategoryModel> {
         if (refresh || categoryList.isEmpty()) {
-            var data = categoryLocalDataSource.findAll()
+            var data = categoryLocalDataSource.getAll()
 
             if (data.isEmpty()) data = generateDefaultList()
 
@@ -32,14 +32,14 @@ class CategoryRepository(
 
     suspend fun getCategory(id: Long): CategoryModel? {
         return if (categoryList.isNotEmpty()) categoryList.find { it.id == id }
-        else categoryLocalDataSource.find(id)
+        else categoryLocalDataSource.get(id)
     }
 
     suspend fun updateCategory(category: CategoryModel) = categoryLocalDataSource.update(category)
 
     suspend fun createCategory(category: CategoryModel) = categoryLocalDataSource.create(category)
 
-    suspend fun deleteCategory(category: CategoryModel) = categoryLocalDataSource.delete(category)
+    suspend fun deleteCategory(id: Long) = categoryLocalDataSource.delete(id)
 
     private suspend fun generateDefaultList(): List<CategoryModel> {
         return listOf(

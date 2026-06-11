@@ -63,9 +63,9 @@ class SettingsViewModel(
         }
     }
 
-    fun deleteCategory(category: CategoryModel) {
+    fun deleteCategory(categoryId: Long) {
         viewModelScope.launch {
-            repository.deleteCategory(category)
+            repository.deleteCategory(categoryId)
             refreshCategoryList()
         }
     }
