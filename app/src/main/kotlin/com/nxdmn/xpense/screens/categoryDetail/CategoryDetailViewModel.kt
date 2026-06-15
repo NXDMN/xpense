@@ -11,17 +11,23 @@ import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.navigation.CategoryDetail
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.DisplayState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class CategoryDetailUiState(
-    val isEdit: Boolean = false,
+data class CategoryState(
     val name: String? = null,
-    var icon: CategoryIcon? = null,
-    var color: Long? = 0xFF808080,
+    val icon: CategoryIcon? = null,
+    val color: Long = 0xFF808080,
+)
+
+data class CategoryDetailUiState(
+    val displayState: DisplayState = DisplayState.Loading,
+    val isEdit: Boolean = false,
+    val category: CategoryState = CategoryState(),
 )
 
 class CategoryDetailViewModel(
@@ -33,39 +39,51 @@ class CategoryDetailViewModel(
 
     init {
         viewModelScope.launch {
-            val category: CategoryModel? =
-                if (categoryId != null) repository.getCategory(categoryId) else null
+            try {
+                val category: CategoryModel? = categoryId?.let { repository.getCategory(it) }
 
-            if (category != null)
-                _uiState.update {
-                    it.copy(
-                        name = category.name,
-                        icon = category.icon,
-                        color = category.color,
-                        isEdit = true
-                    )
+                if (category != null)
+                    _uiState.update {
+                        it.copy(
+                            displayState = DisplayState.Content,
+                            isEdit = true,
+                            category = CategoryState(
+                                name = category.name,
+                                icon = category.icon,
+                                color = category.color,
+                            )
+                        )
+                    }
+                else _uiState.update {
+                    it.copy(displayState = DisplayState.Content)
                 }
+            } catch (ex: Exception) {
+                _uiState.update {
+                    it.copy(displayState = DisplayState.Error)
+                }
+            }
         }
     }
 
     fun updateName(value: String) = _uiState.update {
-        it.copy(name = value)
+        it.copy(category = it.category.copy(name = value))
     }
 
     fun updateIcon(value: CategoryIcon) = _uiState.update {
-        it.copy(icon = value)
+        it.copy(category = it.category.copy(icon = value))
     }
 
     fun updateColor(value: Long) = _uiState.update {
-        it.copy(color = value)
+        it.copy(category = it.category.copy(color = value))
     }
 
     fun saveCategory() {
+        val currentCategory = _uiState.value.category
         val category = CategoryModel(
             id = categoryId ?: 0,
-            name = _uiState.value.name!!,
-            icon = _uiState.value.icon!!,
-            color = _uiState.value.color!!
+            name = currentCategory.name!!,
+            icon = currentCategory.icon!!,
+            color = currentCategory.color
         )
         viewModelScope.launch {
             if (_uiState.value.isEdit) {

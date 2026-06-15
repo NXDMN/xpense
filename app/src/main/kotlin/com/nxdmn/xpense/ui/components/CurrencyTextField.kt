@@ -26,8 +26,7 @@ fun CurrencyTextField(
     currencyCode: String,
     amount: String,
     onValueChanged: (String) -> Unit,
-    isError: Boolean = false,
-    errorText: String = ""
+    errorText: String? = null
 ) {
     val df = remember { DecimalFormat("0.00").also { it.roundingMode = RoundingMode.DOWN.ordinal } }
     TextField(
@@ -66,9 +65,9 @@ fun CurrencyTextField(
             )
         },
         supportingText = {
-            if (isError) Text(errorText)
+            if (errorText != null) Text(errorText)
         },
-        isError = isError,
+        isError = errorText != null,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         shape = RoundedCornerShape(30.dp),
@@ -87,6 +86,6 @@ fun CurrencyTextFieldPreview() {
         currencyCode = "$",
         amount = "10",
         onValueChanged = {},
-        isError = true
+        errorText = "Please enter something"
     )
 }

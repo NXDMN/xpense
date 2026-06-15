@@ -14,6 +14,7 @@ import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 import com.nxdmn.xpense.helpers.toLocalDate
 import com.nxdmn.xpense.navigation.ExpenseDetail
+import com.nxdmn.xpense.ui.DisplayState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,21 +24,23 @@ import java.time.LocalDate
 
 const val MAX_PHOTOS = 4
 
-data class ExpenseDetailUiState(
-    val isBusy: Boolean = true,
-    val isEdit: Boolean = false,
-    val currencyCode: String = "",
+data class ExpenseState(
     val amount: Double = 0.0,
-    val isAmountError: Boolean = false,
-    val amountErrorText: String = "",
     val date: LocalDate = LocalDate.now(),
     val category: CategoryModel? = null,
     val remarks: String = "",
-    val images: List<String> = emptyList(),
+    val images: List<String> = emptyList()
+)
+
+data class ExpenseDetailUiState(
+    val displayState: DisplayState = DisplayState.Loading,
+    val isEdit: Boolean = false,
+    val currencyCode: String = "",
     val categoryList: List<CategoryModel> = emptyList(),
+    val amountErrorText: String? = null,
+    val expense: ExpenseState = ExpenseState(),
 ) {
-    val allowImages: Int
-        get() = MAX_PHOTOS - images.size
+    val allowImages: Int get() = MAX_PHOTOS - expense.images.size
 }
 
 class ExpenseDetailViewModel(
@@ -51,49 +54,50 @@ class ExpenseDetailViewModel(
 
     init {
         viewModelScope.launch {
-            val favCatId = dataStore.getFavCategoryId()
-            val categoryList = categoryRepository.getAllCategories().toMutableList()
-            val favCategory = categoryList.find { it.id == favCatId }
-            if (favCategory != null) {
-                categoryList.remove(favCategory)
-                categoryList.add(0, favCategory)
-            }
-            _uiState.update {
-                it.copy(
-                    currencyCode = dataStore.getCurrency().currencyCode,
-                    categoryList = categoryList
-                )
-            }
+            try {
+                val favCatId = dataStore.getFavCategoryId()
+                val categoryList = categoryRepository.getAllCategories().toMutableList()
+                val favCategory = categoryList.find { it.id == favCatId }
+                if (favCategory != null) {
+                    categoryList.remove(favCategory)
+                    categoryList.add(0, favCategory)
+                }
+                val currencyCode = dataStore.getCurrency().currencyCode
 
-            val expense: ExpenseModel? =
-                if (expenseId != null) expenseRepository.getExpense(expenseId) else null
+                val expense: ExpenseModel? =
+                    if (expenseId != null) expenseRepository.getExpense(expenseId) else null
 
-            if (expense != null)
                 _uiState.update {
                     it.copy(
-                        amount = expense.amount,
-                        date = expense.date,
-                        category = expense.category,
-                        remarks = expense.remarks,
-                        images = expense.images,
-                        isEdit = true
+                        displayState = DisplayState.Content,
+                        currencyCode = currencyCode,
+                        categoryList = categoryList,
+                        isEdit = expense != null,
+                        expense = if (expense != null) ExpenseState(
+                            amount = expense.amount,
+                            date = expense.date,
+                            category = expense.category,
+                            remarks = expense.remarks,
+                            images = expense.images,
+                        ) else ExpenseState(category = categoryList.firstOrNull()),
                     )
                 }
-            else
-                _uiState.update { it.copy(category = it.categoryList.first()) }
-
-            _uiState.update { it.copy(isBusy = false) }
+            } catch (ex: Exception) {
+                _uiState.update {
+                    it.copy(displayState = DisplayState.Error)
+                }
+            }
         }
     }
 
     private fun validate(): Boolean {
+        _uiState.update {
+            it.copy(amountErrorText = null)
+        }
         var valid = true
-        if (_uiState.value.amount <= 0.0) {
+        if (_uiState.value.expense.amount <= 0.0) {
             _uiState.update {
-                it.copy(
-                    isAmountError = true,
-                    amountErrorText = "Please enter amount"
-                )
+                it.copy(amountErrorText = "Please enter amount")
             }
             valid = false
         }
@@ -103,13 +107,14 @@ class ExpenseDetailViewModel(
     fun saveExpense(): Boolean {
         if (!validate()) return false
 
+        val currentExpense = _uiState.value.expense
         val expense = ExpenseModel(
             id = expenseId ?: 0,
-            amount = _uiState.value.amount,
-            date = _uiState.value.date,
-            category = _uiState.value.category!!,
-            remarks = _uiState.value.remarks,
-            images = _uiState.value.images
+            amount = currentExpense.amount,
+            date = currentExpense.date,
+            category = currentExpense.category!!,
+            remarks = currentExpense.remarks,
+            images = currentExpense.images
         )
         viewModelScope.launch {
             if (_uiState.value.isEdit) {
@@ -117,7 +122,7 @@ class ExpenseDetailViewModel(
             } else {
                 expenseRepository.createExpense(expense)
                 // Only increase count when create
-                categoryRepository.updateCategory(_uiState.value.category!!.apply { count++ })
+                categoryRepository.updateCategory(currentExpense.category.apply { count++ })
             }
         }
         return true
@@ -127,42 +132,29 @@ class ExpenseDetailViewModel(
         expenseRepository.deleteExpense(expenseId!!)
     }
 
-    fun updateAmount(amount: String) {
-        _uiState.update {
-            it.copy(amount = amount.toDoubleOrNull() ?: 0.0)
-        }
+    fun updateAmount(amount: String) = _uiState.update {
+        it.copy(expense = it.expense.copy(amount = amount.toDoubleOrNull() ?: 0.0))
     }
 
-    fun updateDate(date: Long) {
-        _uiState.update {
-            it.copy(date = date.toLocalDate())
-        }
+    fun updateDate(date: Long) = _uiState.update {
+        it.copy(expense = it.expense.copy(date = date.toLocalDate()))
     }
 
-    fun updateCategory(category: CategoryModel) {
-        _uiState.update {
-            it.copy(category = category)
-        }
+    fun updateCategory(category: CategoryModel) = _uiState.update {
+        it.copy(expense = it.expense.copy(category = category))
     }
 
-    fun updateRemarks(remarks: String) {
-        _uiState.update {
-            it.copy(remarks = remarks)
-        }
+    fun updateRemarks(remarks: String) = _uiState.update {
+        it.copy(expense = it.expense.copy(remarks = remarks))
     }
 
-    fun addImage(image: String) {
-        _uiState.update {
-            it.copy(images = _uiState.value.images + image)
-        }
+    fun addImage(image: String) = _uiState.update {
+        it.copy(expense = it.expense.copy(images = it.expense.images + image))
     }
 
-    fun removeImages(images: List<String>) {
-        _uiState.update {
-            it.copy(images = _uiState.value.images - images)
-        }
+    fun removeImages(images: List<String>) = _uiState.update {
+        it.copy(expense = it.expense.copy(images = it.expense.images - images.toSet()))
     }
-
 
     companion object {
         fun Factory(navKey: ExpenseDetail? = null): ViewModelProvider.Factory =

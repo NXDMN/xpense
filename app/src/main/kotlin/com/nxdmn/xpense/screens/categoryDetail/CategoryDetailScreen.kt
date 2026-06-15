@@ -7,11 +7,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,8 +59,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.helpers.isLight
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.DisplayState
 import com.nxdmn.xpense.ui.components.ColorPicker
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
+import com.nxdmn.xpense.ui.components.ErrorDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -125,102 +130,131 @@ fun CategoryDetailScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                }
-                .padding(top = innerPadding.calculateTopPadding())
-                .verticalScroll(rememberScrollState())
-                .let {
-                    val configuration = LocalConfiguration.current
-                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        it.windowInsetsPadding(WindowInsets.safeContent.only(WindowInsetsSides.Horizontal))
-                    } else it
-                }
-                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (openDeleteDialog)
-                DeleteConfirmationDialog(
-                    description = "Are you sure you want to delete this category?",
-                    onDismiss = { openDeleteDialog = false },
-                    onConfirmClicked = {
-                        categoryDetailViewModel.deleteCategory()
-                        openDeleteDialog = false
-                        onNavigateBack()
-                    },
-                )
-
-            TextField(
-                value = categoryDetailUiState.name ?: "",
-                onValueChange = {
-                    categoryDetailViewModel.updateName(it)
-                },
-                modifier = Modifier
-                    .padding(40.dp)
-                    .fillMaxWidth(),
-                textStyle = MaterialTheme.typography.titleMedium,
-                label = {
-                    Text(text = "Name")
-                },
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                }),
-                singleLine = true,
-                shape = RoundedCornerShape(30.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                )
-            )
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                CategoryIcon.entries.forEach { icon ->
-                    var backgroundColor = Color.Transparent
-                    var contentColor = LocalContentColor.current
-                    if (categoryDetailUiState.icon?.ordinal == icon.ordinal && categoryDetailUiState.color != null) {
-                        backgroundColor = Color(categoryDetailUiState.color!!)
-                        contentColor = if (backgroundColor.isLight()) Color.Black else Color.White
-                    }
-
-                    Icon(
-                        painterResource(icon.resId),
-                        contentDescription = icon.name,
-                        modifier = Modifier
-                            .let {
-                                if (categoryDetailUiState.icon?.ordinal == icon.ordinal) it.border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.onBackground
-                                )
-                                else it
-                            }
-                            .clickable(
-                                remember { MutableInteractionSource() },
-                                indication = ripple(),
-                                onClick = {
-                                    categoryDetailViewModel.updateIcon(icon)
-                                }
-                            )
-                            .background(backgroundColor)
-                            .padding(5.dp),
-                        tint = contentColor
-                    )
+        when (categoryDetailUiState.displayState) {
+            is DisplayState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
 
-            ColorPicker(
-                color = categoryDetailUiState.color ?: 0xFF808080,
-                onColorSelected = {
-                    categoryDetailViewModel.updateColor(it)
+            is DisplayState.Error -> {
+                var openDialog by remember { mutableStateOf(true) }
+                if (openDialog)
+                    ErrorDialog(onDismiss = {
+                        openDialog = false
+                        onNavigateBack()
+                    })
+            }
+
+            is DisplayState.Content -> {
+                Column(
+                    modifier = Modifier
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus()
+                            })
+                        }
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .verticalScroll(rememberScrollState())
+                        .let {
+                            val configuration = LocalConfiguration.current
+                            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                it.windowInsetsPadding(
+                                    WindowInsets.safeContent.only(
+                                        WindowInsetsSides.Horizontal
+                                    )
+                                )
+                            } else it
+                        }
+                        .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (openDeleteDialog)
+                        DeleteConfirmationDialog(
+                            description = "Are you sure you want to delete this category?",
+                            onDismiss = { openDeleteDialog = false },
+                            onConfirmClicked = {
+                                categoryDetailViewModel.deleteCategory()
+                                openDeleteDialog = false
+                                onNavigateBack()
+                            },
+                        )
+
+                    TextField(
+                        value = categoryDetailUiState.category.name ?: "",
+                        onValueChange = {
+                            categoryDetailViewModel.updateName(it)
+                        },
+                        modifier = Modifier
+                            .padding(40.dp)
+                            .fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.titleMedium,
+                        label = {
+                            Text(text = "Name")
+                        },
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus()
+                        }),
+                        singleLine = true,
+                        shape = RoundedCornerShape(30.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        )
+                    )
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        CategoryIcon.entries.forEach { icon ->
+                            var backgroundColor = Color.Transparent
+                            var contentColor = LocalContentColor.current
+                            if (categoryDetailUiState.category.icon?.ordinal == icon.ordinal && categoryDetailUiState.category.color != null) {
+                                backgroundColor = Color(categoryDetailUiState.category.color!!)
+                                contentColor =
+                                    if (backgroundColor.isLight()) Color.Black else Color.White
+                            }
+
+                            Icon(
+                                painterResource(icon.resId),
+                                contentDescription = icon.name,
+                                modifier = Modifier
+                                    .let {
+                                        if (categoryDetailUiState.category.icon?.ordinal == icon.ordinal) it.border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.onBackground
+                                        )
+                                        else it
+                                    }
+                                    .clickable(
+                                        remember { MutableInteractionSource() },
+                                        indication = ripple(),
+                                        onClick = {
+                                            categoryDetailViewModel.updateIcon(icon)
+                                        }
+                                    )
+                                    .background(backgroundColor)
+                                    .padding(5.dp),
+                                tint = contentColor
+                            )
+                        }
+                    }
+
+                    ColorPicker(
+                        color = categoryDetailUiState.category.color ?: 0xFF808080,
+                        onColorSelected = {
+                            categoryDetailViewModel.updateColor(it)
+                        }
+                    )
                 }
-            )
+            }
         }
     }
 }

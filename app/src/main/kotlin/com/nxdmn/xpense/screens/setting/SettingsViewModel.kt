@@ -12,13 +12,15 @@ import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.helpers.CurrencyHelper
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.nxdmn.xpense.ui.DisplayState
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
+    val displayState: DisplayState = DisplayState.Loading,
     val categoryList: List<CategoryModel> = emptyList(),
     val currencySymbolMap: Map<Currency, String> = emptyMap(),
     val currencySymbol: String? = null,
@@ -30,68 +32,47 @@ class SettingsViewModel(
     private val dataStore: UserPrefsDataStore
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<SettingsUiState> = combine(
+        repository.categoryListFlow,                // Expose Category List as a live Flow from your Room DB
+        dataStore.currencyFlow,                   // Live stream of chosen Currency configuration
+        dataStore.favCategoryIdFlow               // Live stream of favorite category ID
+    ) { categories, currency, favCategoryId ->
 
-    private lateinit var currency: Currency
+        val categoryList = categories.toMutableList()
+        val favCategory = categoryList.find { it.id == favCategoryId }
 
-    init {
-        viewModelScope.launch {
-            currency = dataStore.getCurrency()
-            _uiState.update {
-                it.copy(
-                    currencySymbolMap = CurrencyHelper.currencySymbolMap,
-                    currencySymbol = CurrencyHelper.getSymbol(currency),
-                )
-            }
-        }
-    }
-
-    suspend fun refreshCategoryList() {
-        val favCatId = dataStore.getFavCategoryId()
-        val categoryList = repository.getAllCategories(true).toMutableList()
-        val favCategory = categoryList.find { it.id == favCatId }
         if (favCategory != null) {
             categoryList.remove(favCategory)
             categoryList.add(0, favCategory)
         }
-        _uiState.update {
-            it.copy(
-                categoryList = categoryList,
-                favouriteCategory = favCategory
-            )
-        }
+
+        SettingsUiState(
+            displayState = DisplayState.Content,
+            categoryList = categoryList,
+            currencySymbolMap = CurrencyHelper.currencySymbolMap,
+            currencySymbol = CurrencyHelper.getSymbol(currency),
+            favouriteCategory = favCategory
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = SettingsUiState(displayState = DisplayState.Loading)
+    )
+
+    fun deleteCategory(categoryId: Long) = viewModelScope.launch {
+        repository.deleteCategory(categoryId)
     }
 
-    fun deleteCategory(categoryId: Long) {
-        viewModelScope.launch {
-            repository.deleteCategory(categoryId)
-            refreshCategoryList()
-        }
+    fun updateCurrency(value: Currency) = viewModelScope.launch {
+        dataStore.setCurrency(value)
     }
 
-
-    fun updateCurrency(value: Currency) {
-        _uiState.update { it.copy(currencySymbol = CurrencyHelper.getSymbol(value)) }
-        viewModelScope.launch {
-            dataStore.setCurrency(value)
-        }
+    fun updateFavouriteCategory(value: CategoryModel) = viewModelScope.launch {
+        dataStore.setFavCategoryId(value.id)
     }
 
-    fun updateFavouriteCategory(value: CategoryModel) {
-        _uiState.update { it.copy(favouriteCategory = value) }
-        viewModelScope.launch {
-            dataStore.setFavCategoryId(value.id)
-            refreshCategoryList()
-        }
-    }
-
-    fun removeFavouriteCategory() {
-        _uiState.update { it.copy(favouriteCategory = null) }
-        viewModelScope.launch {
-            dataStore.setFavCategoryId(null)
-            refreshCategoryList()
-        }
+    fun removeFavouriteCategory() = viewModelScope.launch {
+        dataStore.setFavCategoryId(null)
     }
 
     companion object {

@@ -22,19 +22,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
+// expenses group by date/category
+data class ExpenseGroup(
+    val groupName: String,
+    val amount: Double,
+    val expenses: List<ExpenseModel>
+)
+
 data class ExpenseListUiState(
     val currencySymbol: String? = null,
     val viewMode: ViewMode = ViewMode.DAY,
-    val totalExpenseList: List<ExpenseModel> = emptyList(),
     val isGroupByCategory: Boolean = true,
-    val expensesGroupedByCategory: Map<CategoryModel, List<ExpenseModel>> = emptyMap(),
-    val expensesGroupedByDate: Map<Any, List<ExpenseModel>> = emptyMap(),
-    val dayExpenseList: List<ExpenseModel> = emptyList(),
-    val dayExpenseAmount: Double = 0.0,
-    val monthExpenseList: List<ExpenseModel> = emptyList(),
-    val monthExpenseAmount: Double = 0.0,
-    val yearExpenseList: List<ExpenseModel> = emptyList(),
-    val yearExpenseAmount: Double = 0.0,
+    val groupedExpenses: List<ExpenseGroup> = emptyList(),
+    val expenseAmount: Double = 0.0,
     val selectedDate: LocalDate = LocalDate.now(),
     val charts: List<ChartModel> = emptyList()
 )
@@ -63,41 +63,61 @@ class ExpenseListViewModel(
             dataStore.currencyFlow,
             _isGroupByCategory,
         ) { expenses, viewMode, selectedDate, currencyFlow, isGroupByCategory ->
-            val dayExpenseList = expenses.filter { e -> e.date == selectedDate }
-            val monthExpenseList =
-                expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
-            val yearExpenseList = expenses.filter { e -> e.date.year == selectedDate.year }
-            val currencySymbol = CurrencyHelper.getSymbol(currencyFlow)
+            val filteredExpenses = when (viewMode) {
+                ViewMode.DAY -> expenses.filter { e -> e.date == selectedDate }
+                ViewMode.MONTH -> expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
+                ViewMode.YEAR -> expenses.filter { e -> e.date.year == selectedDate.year }
+            }
+
+            val groupedExpenses =
+                // in day, can be grouped by category
+                if (isGroupByCategory || viewMode == ViewMode.DAY) filteredExpenses.groupBy { it.category }
+                    .map { (category, expenses) ->
+                        ExpenseGroup(
+                            category.name,
+                            expenses.sumOf { it.amount },
+                            expenses
+                        )
+                    }
+                else when (viewMode) {
+                    // in month, can be grouped by day
+                    ViewMode.MONTH -> filteredExpenses.groupBy { it.date }
+                        .toSortedMap(compareByDescending { it }).map { (key, expenses) ->
+                            ExpenseGroup(
+                                (key as LocalDate).toString(),
+                                expenses.sumOf { it.amount },
+                                expenses
+                            )
+                        }
+                    // in year, can be grouped by month
+                    ViewMode.YEAR -> filteredExpenses.groupBy { it.date.month }
+                        .map { (key, expenses) ->
+                            ExpenseGroup(
+                                key.name,
+                                expenses.sumOf { it.amount },
+                                expenses
+                            )
+                        }
+                }
+
+            val chartData = filteredExpenses
+                .groupingBy { e -> e.category }
+                .fold(0.0) { acc, element -> acc + element.amount }
+                .map { entry ->
+                    ChartModel(
+                        entry.value.toFloat(),
+                        Color(entry.key.color)
+                    )
+                }
 
             ExpenseListUiState(
-                currencySymbol = currencySymbol,
+                currencySymbol = CurrencyHelper.getSymbol(currencyFlow),
                 viewMode = viewMode,
-                totalExpenseList = expenses,
                 isGroupByCategory = isGroupByCategory,
-                expensesGroupedByCategory = when (viewMode) {
-                    ViewMode.DAY -> dayExpenseList
-                    ViewMode.MONTH -> monthExpenseList
-                    ViewMode.YEAR -> yearExpenseList
-                }.groupBy { it.category },
-                expensesGroupedByDate = when (viewMode) {
-                    ViewMode.DAY -> mapOf(selectedDate to dayExpenseList)
-                    ViewMode.MONTH -> monthExpenseList.groupBy { it.date }
-                    ViewMode.YEAR -> yearExpenseList.groupBy { it.date.month }
-                },
-                dayExpenseList = dayExpenseList,
-                dayExpenseAmount = dayExpenseList.sumOf { e -> e.amount },
-                monthExpenseList = monthExpenseList,
-                monthExpenseAmount = monthExpenseList.sumOf { e -> e.amount },
-                yearExpenseList = yearExpenseList,
-                yearExpenseAmount = yearExpenseList.sumOf { e -> e.amount },
+                groupedExpenses = groupedExpenses,
+                expenseAmount = filteredExpenses.sumOf { e -> e.amount },
                 selectedDate = selectedDate,
-                charts = updateChart(
-                    when (_viewMode.value) {
-                        ViewMode.DAY -> dayExpenseList
-                        ViewMode.MONTH -> monthExpenseList
-                        ViewMode.YEAR -> yearExpenseList
-                    }
-                )
+                charts = chartData
             )
         }.stateIn(
             scope = viewModelScope,
@@ -105,9 +125,7 @@ class ExpenseListViewModel(
             initialValue = ExpenseListUiState()
         )
 
-    fun updateSelectedDate(selectedDate: LocalDate) {
-        _selectedDate.update { selectedDate }
-    }
+    fun updateSelectedDate(selectedDate: LocalDate) = _selectedDate.update { selectedDate }
 
     fun recordToday() {
         today = LocalDate.now()
@@ -119,24 +137,9 @@ class ExpenseListViewModel(
         }
     }
 
-    fun updateViewMode(viewMode: ViewMode) {
-        _viewMode.update { viewMode }
-    }
+    fun updateViewMode(viewMode: ViewMode) = _viewMode.update { viewMode }
 
-    fun toggleIsGroupByCategory() {
-        _isGroupByCategory.update { !it }
-    }
-
-    private fun updateChart(expenseList: List<ExpenseModel>): List<ChartModel> =
-        expenseList
-            .groupingBy { e -> e.category }
-            .fold(0.0) { acc, element -> acc + element.amount }
-            .map { entry ->
-                ChartModel(
-                    entry.value.toFloat(),
-                    Color(entry.key.color)
-                )
-            }
+    fun toggleIsGroupByCategory() = _isGroupByCategory.update { !it }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

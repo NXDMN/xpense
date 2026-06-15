@@ -42,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,7 +73,6 @@ import com.nxdmn.xpense.ui.components.MonthPicker
 import com.nxdmn.xpense.ui.components.PieChart
 import com.nxdmn.xpense.ui.components.YearPicker
 import java.time.LocalDate
-import java.time.Month
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,13 +158,7 @@ fun ExpenseListScreen(
                         modifier = Modifier.align(Alignment.Center),
                         charts = expenseListUiState.charts,
                         text = "${expenseListUiState.currencySymbol ?: ""}${
-                            "%.2f".format(
-                                when (expenseListUiState.viewMode) {
-                                    ViewMode.DAY -> expenseListUiState.dayExpenseAmount
-                                    ViewMode.MONTH -> expenseListUiState.monthExpenseAmount
-                                    ViewMode.YEAR -> expenseListUiState.yearExpenseAmount
-                                }
-                            )
+                            "%.2f".format(expenseListUiState.expenseAmount)
                         }"
                     )
 
@@ -180,20 +172,11 @@ fun ExpenseListScreen(
                         }
                 }
 
-                if (expenseListUiState.viewMode != ViewMode.DAY && !expenseListUiState.isGroupByCategory) {
-                    ExpenseListSectionByDate(
-                        currencySymbol = expenseListUiState.currencySymbol ?: "",
-                        viewMode = expenseListUiState.viewMode,
-                        expensesGroupedByDate = expenseListUiState.expensesGroupedByDate,
-                        onNavigateToDetail = onNavigateToDetail
-                    )
-                } else {
-                    ExpenseListSectionByCategory(
-                        currencySymbol = expenseListUiState.currencySymbol ?: "",
-                        expensesGroupedByCategory = expenseListUiState.expensesGroupedByCategory,
-                        onNavigateToDetail = onNavigateToDetail
-                    )
-                }
+                ExpenseGroupSection(
+                    currencySymbol = expenseListUiState.currencySymbol ?: "",
+                    expenseGroupList = expenseListUiState.groupedExpenses,
+                    onNavigateToDetail = onNavigateToDetail
+                )
             }
         }
     }
@@ -277,94 +260,33 @@ fun CalendarLabel(
 }
 
 @Composable
-fun ExpenseListSectionByCategory(
+fun ExpenseGroupSection(
     currencySymbol: String,
-    expensesGroupedByCategory: Map<CategoryModel, List<ExpenseModel>>,
+    expenseGroupList: List<ExpenseGroup>,
     onNavigateToDetail: (Long?) -> Unit = {}
 ) {
     Column(
         modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        expensesGroupedByCategory.forEach {
+        expenseGroupList.forEach {
             Card {
                 Column(
                     modifier = Modifier.padding(10.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    val total by remember(it.value) {
-                        mutableDoubleStateOf(it.value.fold(0.0) { acc, element -> acc + element.amount })
-                    }
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(it.key.name, fontSize = 20.sp)
+                        Text(it.groupName, fontSize = 20.sp)
                         Text(
-                            "$currencySymbol ${"%.2f".format(total)}",
+                            "$currencySymbol ${"%.2f".format(it.amount)}",
                             fontSize = 20.sp
                         )
                     }
 
-                    it.value.forEach { expense ->
-                        ExpenseCard(
-                            currencySymbol,
-                            expense,
-                            onNavigateToDetail = onNavigateToDetail
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ExpenseListSectionByDate(
-    currencySymbol: String,
-    viewMode: ViewMode,
-    expensesGroupedByDate: Map<Any, List<ExpenseModel>>,
-    onNavigateToDetail: (Long?) -> Unit = {}
-) {
-    Column(
-        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        var sortedGroup: Map<Any, List<ExpenseModel>> = expensesGroupedByDate
-        if (viewMode == ViewMode.MONTH) {
-            sortedGroup =
-                expensesGroupedByDate.toSortedMap(compareByDescending { date -> date as LocalDate })
-        }
-
-        sortedGroup.forEach {
-            val groupName = when (it.key) {
-                is LocalDate -> (it.key as LocalDate).toString()
-                is Month -> (it.key as Month).name
-                else -> ""
-            }
-
-            Card {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    val total by remember(it.value) {
-                        mutableDoubleStateOf(it.value.fold(0.0) { acc, element -> acc + element.amount })
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(groupName, fontSize = 20.sp)
-                        Text(
-                            "$currencySymbol ${"%.2f".format(total)}",
-                            fontSize = 20.sp
-                        )
-                    }
-
-                    it.value.forEach { expense ->
+                    it.expenses.forEach { expense ->
                         ExpenseCard(
                             currencySymbol,
                             expense,
@@ -480,11 +402,13 @@ fun TestPreview() {
                 }
                 val cat =
                     CategoryModel(name = "Food", icon = CategoryIcon.LUNCH, color = 0xFF1AfEC1)
-                ExpenseListSectionByCategory(
+                ExpenseGroupSection(
                     currencySymbol = "$",
-                    expensesGroupedByCategory = mapOf(
-                        cat to listOf(
-                            ExpenseModel(amount = 10.0, category = cat)
+                    expenseGroupList = listOf(
+                        ExpenseGroup(
+                            cat.name,
+                            10.0,
+                            listOf(ExpenseModel(amount = 10.0, category = cat))
                         )
                     ),
                     onNavigateToDetail = {}

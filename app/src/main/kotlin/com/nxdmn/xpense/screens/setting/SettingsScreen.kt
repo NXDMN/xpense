@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,8 +64,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
+import com.nxdmn.xpense.ui.DisplayState
 import com.nxdmn.xpense.ui.components.CircleBorderIcon
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
+import com.nxdmn.xpense.ui.components.ErrorDialog
 import com.nxdmn.xpense.ui.components.SelectionListDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,13 +77,6 @@ fun SettingsScreen(
     onNavigateToCategoryDetail: (Long?) -> Unit
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
-        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            settingsViewModel.refreshCategoryList()
-        }
-    }
 
     Scaffold(
         Modifier.semantics { contentDescription = "Settings" },
@@ -95,127 +92,154 @@ fun SettingsScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(top = innerPadding.calculateTopPadding())
-                .verticalScroll(rememberScrollState())
-                .let {
-                    val configuration = LocalConfiguration.current
-                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        it.windowInsetsPadding(WindowInsets.safeContent.only(WindowInsetsSides.Horizontal))
-                    } else it
-                }
-                .padding(20.dp),
-        ) {
-            CategoryList(
-                categoryList = settingsUiState.categoryList,
-                onNavigateToCategoryDetail = onNavigateToCategoryDetail,
-                deleteCategory = { settingsViewModel.deleteCategory(it) }
-            )
-
-            HorizontalDivider(color = Color.LightGray)
-
-            var openDialog by remember { mutableStateOf(false) }
-
-            SettingsListItem(
-                title = "Currency",
-                leading = {
-                    Icon(
-                        painterResource(R.drawable.baseline_currency_exchange_24),
-                        contentDescription = "Currency",
-                        modifier = Modifier.size(36.dp)
-                    )
-                },
-                trailing = {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Text(
-                            settingsUiState.currencySymbol ?: "",
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                },
-                onClick = { openDialog = true },
-            )
-
-            if (openDialog)
-                SelectionListDialog(
-                    items = settingsUiState.currencySymbolMap.keys.toList(),
-                    onClicked = {
-                        settingsViewModel.updateCurrency(it)
-                    },
-                    onDismiss = { openDialog = false },
+        when (settingsUiState.displayState) {
+            is DisplayState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("${it.displayName} - ${it.currencyCode} (${settingsUiState.currencySymbolMap[it]})")
+                    CircularProgressIndicator()
                 }
+            }
 
-            HorizontalDivider(color = Color.LightGray)
+            is DisplayState.Error -> {
+                var openDialog by remember { mutableStateOf(true) }
+                if (openDialog)
+                    ErrorDialog(onDismiss = {
+                        openDialog = false
+                    })
+            }
 
-            var openCategorySelectionDialog by remember { mutableStateOf(false) }
-
-            SettingsListItem(
-                title = "Favourite Category",
-                leading = {
-                    Icon(
-                        painterResource(R.drawable.baseline_favorite_24),
-                        contentDescription = "Favourite Category",
-                        modifier = Modifier.size(36.dp)
+            is DisplayState.Content -> {
+                Column(
+                    modifier = Modifier
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .verticalScroll(rememberScrollState())
+                        .let {
+                            val configuration = LocalConfiguration.current
+                            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                it.windowInsetsPadding(
+                                    WindowInsets.safeContent.only(
+                                        WindowInsetsSides.Horizontal
+                                    )
+                                )
+                            } else it
+                        }
+                        .padding(20.dp),
+                ) {
+                    CategoryList(
+                        categoryList = settingsUiState.categoryList,
+                        onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+                        deleteCategory = { settingsViewModel.deleteCategory(it) }
                     )
-                },
-                trailing = {
-                    if (settingsUiState.favouriteCategory != null)
-                        Row(
-                            modifier = Modifier.height(36.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                modifier = Modifier.size(24.dp),
-                                onClick = {
-                                    settingsViewModel.removeFavouriteCategory()
-                                }) {
-                                Icon(
-                                    painterResource(R.drawable.baseline_clear_24),
-                                    contentDescription = "Remove Favourite Category"
+
+                    HorizontalDivider(color = Color.LightGray)
+
+                    var openDialog by remember { mutableStateOf(false) }
+
+                    SettingsListItem(
+                        title = "Currency",
+                        leading = {
+                            Icon(
+                                painterResource(R.drawable.baseline_currency_exchange_24),
+                                contentDescription = "Currency",
+                                modifier = Modifier.size(36.dp)
+                            )
+                        },
+                        trailing = {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text(
+                                    settingsUiState.currencySymbol ?: "",
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center,
                                 )
                             }
-                            IconButton(onClick = {
-                                openDialog = true
-                            }) {
+                        },
+                        onClick = { openDialog = true },
+                    )
+
+                    if (openDialog)
+                        SelectionListDialog(
+                            items = settingsUiState.currencySymbolMap.keys.toList(),
+                            onClicked = {
+                                settingsViewModel.updateCurrency(it)
+                            },
+                            onDismiss = { openDialog = false },
+                        ) {
+                            Text("${it.displayName} - ${it.currencyCode} (${settingsUiState.currencySymbolMap[it]})")
+                        }
+
+                    HorizontalDivider(color = Color.LightGray)
+
+                    var openCategorySelectionDialog by remember { mutableStateOf(false) }
+
+                    SettingsListItem(
+                        title = "Favourite Category",
+                        leading = {
+                            Icon(
+                                painterResource(R.drawable.baseline_favorite_24),
+                                contentDescription = "Favourite Category",
+                                modifier = Modifier.size(36.dp)
+                            )
+                        },
+                        trailing = {
+                            if (settingsUiState.favouriteCategory != null)
+                                Row(
+                                    modifier = Modifier.height(36.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(
+                                        modifier = Modifier.size(24.dp),
+                                        onClick = {
+                                            settingsViewModel.removeFavouriteCategory()
+                                        }) {
+                                        Icon(
+                                            painterResource(R.drawable.baseline_clear_24),
+                                            contentDescription = "Remove Favourite Category"
+                                        )
+                                    }
+                                    IconButton(onClick = {
+                                        openDialog = true
+                                    }) {
+                                        CircleBorderIcon(
+                                            resId = settingsUiState.favouriteCategory!!.icon.resId,
+                                            name = settingsUiState.favouriteCategory!!.name,
+                                            color = settingsUiState.favouriteCategory!!.color
+                                        )
+                                    }
+                                }
+                        },
+                        onClick = { openCategorySelectionDialog = true },
+                        isBottom = true,
+                    )
+
+                    if (openCategorySelectionDialog)
+                        SelectionListDialog(
+                            items = settingsUiState.categoryList,
+                            onClicked = {
+                                settingsViewModel.updateFavouriteCategory(it)
+                            },
+                            onDismiss = { openCategorySelectionDialog = false },
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 CircleBorderIcon(
-                                    resId = settingsUiState.favouriteCategory!!.icon.resId,
-                                    name = settingsUiState.favouriteCategory!!.name,
-                                    color = settingsUiState.favouriteCategory!!.color
+                                    resId = it.icon.resId,
+                                    name = it.name,
+                                    color = it.color
                                 )
+                                Text(it.name)
                             }
                         }
-                },
-                onClick = { openCategorySelectionDialog = true },
-                isBottom = true,
-            )
-
-            if (openCategorySelectionDialog)
-                SelectionListDialog(
-                    items = settingsUiState.categoryList,
-                    onClicked = {
-                        settingsViewModel.updateFavouriteCategory(it)
-                    },
-                    onDismiss = { openCategorySelectionDialog = false },
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(15.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircleBorderIcon(
-                            resId = it.icon.resId,
-                            name = it.name,
-                            color = it.color
-                        )
-                        Text(it.name)
-                    }
                 }
+            }
         }
     }
 }

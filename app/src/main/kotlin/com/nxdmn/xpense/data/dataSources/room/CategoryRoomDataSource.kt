@@ -4,10 +4,14 @@ import com.nxdmn.xpense.data.dataSources.CategoryDataSource
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.asEntity
 import com.nxdmn.xpense.data.models.asModel
-import com.nxdmn.xpense.data.relations.CategoryWithExpensesModel
-import com.nxdmn.xpense.data.relations.asModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource {
+    override fun getAllAsFlow(): Flow<List<CategoryModel>> {
+        return dao.getAllAsFlow().map { list -> list.map { it.asModel() } }
+    }
+
     override suspend fun getAll(): List<CategoryModel> {
         return dao.getAll().map { it.asModel() }
     }

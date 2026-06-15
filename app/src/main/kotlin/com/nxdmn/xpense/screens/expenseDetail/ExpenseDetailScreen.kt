@@ -3,7 +3,6 @@ package com.nxdmn.xpense.screens.expenseDetail
 import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -71,9 +70,11 @@ import com.nxdmn.xpense.R
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.helpers.toEpochMilli
 import com.nxdmn.xpense.ui.CategoryIcon
+import com.nxdmn.xpense.ui.DisplayState
 import com.nxdmn.xpense.ui.components.CategoryLabel
 import com.nxdmn.xpense.ui.components.CurrencyTextField
 import com.nxdmn.xpense.ui.components.DeleteConfirmationDialog
+import com.nxdmn.xpense.ui.components.ErrorDialog
 import com.nxdmn.xpense.ui.components.PhotoGrid
 import com.nxdmn.xpense.ui.components.SelectionListDialog
 import com.nxdmn.xpense.ui.states.rememberPermissionState
@@ -134,202 +135,218 @@ fun ExpenseDetailScreen(
             )
         },
     ) { innerPadding ->
-        if (expenseDetailUiState.isBusy) {
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        when (expenseDetailUiState.displayState) {
+            is DisplayState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = {
-                            focusManager.clearFocus()
-                        })
-                    }
-                    .padding(top = innerPadding.calculateTopPadding())
-                    .verticalScroll(rememberScrollState())
-                    .let {
-                        val configuration = LocalConfiguration.current
-                        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            it.windowInsetsPadding(WindowInsets.safeContent.only(WindowInsetsSides.Horizontal))
-                        } else it
-                    }
-                    .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (openDeleteDialog)
-                    DeleteConfirmationDialog(
-                        description = "Are you sure you want to delete this expense?",
-                        onDismiss = { openDeleteDialog = false },
-                        onConfirmClicked = {
-                            expenseDetailViewModel.deleteExpense()
-                            openDeleteDialog = false
-                            onNavigateBack()
-                        },
-                    )
 
-                CurrencyTextField(
-                    currencyCode = expenseDetailUiState.currencyCode,
-                    amount = if (expenseDetailUiState.amount == 0.0) "" else "%.2f".format(
-                        expenseDetailUiState.amount
-                    ),
-                    onValueChanged = {
-                        expenseDetailViewModel.updateAmount(it)
-                    },
-                    isError = expenseDetailUiState.isAmountError,
-                    errorText = expenseDetailUiState.amountErrorText
-                )
-
-                val datePickerState =
-                    rememberDatePickerState(initialSelectedDateMillis = expenseDetailUiState.date.toEpochMilli())
-                datePickerState.selectedDateMillis?.let {
-                    expenseDetailViewModel.updateDate(it)
-                }
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.padding(bottom = 20.dp),
-                    shape = RoundedCornerShape(20.dp),
-                ) {
-                    DatePicker(
-                        state = datePickerState,
-                        title = null,
-                        headline = null,
-                        showModeToggle = false
-                    )
-                }
-
-                CategorySection(
-                    expenseDetailUiState.categoryList,
-                    expenseDetailUiState.category!!
-                ) {
-                    expenseDetailViewModel.updateCategory(it)
-                }
-
-                TextField(
-                    value = expenseDetailUiState.remarks,
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = {
-                        expenseDetailViewModel.updateRemarks(it)
-                    },
-                    label = { Text("Remarks") }
-                )
-
-                var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
-
-                PhotoGrid(
-                    imagePaths = expenseDetailUiState.images,
-                    onSelectionChanged = {
-                        selectedImages = it
+            is DisplayState.Error -> {
+                var openDialog by remember { mutableStateOf(true) }
+                if (openDialog)
+                    ErrorDialog(onDismiss = {
+                        openDialog = false
+                        onNavigateBack()
                     })
+            }
 
-                val context = LocalContext.current
-                val imagePicker = if (expenseDetailUiState.allowImages > 1) {
-                    rememberLauncherForActivityResult(
-                        ActivityResultContracts.PickMultipleVisualMedia(
-                            expenseDetailUiState.allowImages
+            is DisplayState.Content -> {
+                Column(
+                    modifier = Modifier
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus()
+                            })
+                        }
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .verticalScroll(rememberScrollState())
+                        .let {
+                            val configuration = LocalConfiguration.current
+                            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                it.windowInsetsPadding(
+                                    WindowInsets.safeContent.only(
+                                        WindowInsetsSides.Horizontal
+                                    )
+                                )
+                            } else it
+                        }
+                        .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (openDeleteDialog)
+                        DeleteConfirmationDialog(
+                            description = "Are you sure you want to delete this expense?",
+                            onDismiss = { openDeleteDialog = false },
+                            onConfirmClicked = {
+                                expenseDetailViewModel.deleteExpense()
+                                openDeleteDialog = false
+                                onNavigateBack()
+                            },
                         )
-                    ) { uris ->
-                        if (uris.isNotEmpty()) {
-                            uris.forEach {
+
+                    CurrencyTextField(
+                        currencyCode = expenseDetailUiState.currencyCode,
+                        amount = if (expenseDetailUiState.expense.amount == 0.0) "" else "%.2f".format(
+                            expenseDetailUiState.expense.amount
+                        ),
+                        onValueChanged = {
+                            expenseDetailViewModel.updateAmount(it)
+                        },
+                        errorText = expenseDetailUiState.amountErrorText
+                    )
+
+                    val datePickerState =
+                        rememberDatePickerState(initialSelectedDateMillis = expenseDetailUiState.expense.date.toEpochMilli())
+                    datePickerState.selectedDateMillis?.let {
+                        expenseDetailViewModel.updateDate(it)
+                    }
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.padding(bottom = 20.dp),
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        DatePicker(
+                            state = datePickerState,
+                            title = null,
+                            headline = null,
+                            showModeToggle = false
+                        )
+                    }
+
+                    CategorySection(
+                        expenseDetailUiState.categoryList,
+                        expenseDetailUiState.expense.category!!
+                    ) {
+                        expenseDetailViewModel.updateCategory(it)
+                    }
+
+                    TextField(
+                        value = expenseDetailUiState.expense.remarks,
+                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = {
+                            expenseDetailViewModel.updateRemarks(it)
+                        },
+                        label = { Text("Remarks") }
+                    )
+
+                    var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
+
+                    PhotoGrid(
+                        imagePaths = expenseDetailUiState.expense.images,
+                        onSelectionChanged = {
+                            selectedImages = it
+                        })
+
+                    val context = LocalContext.current
+                    val imagePicker = if (expenseDetailUiState.allowImages > 1) {
+                        rememberLauncherForActivityResult(
+                            ActivityResultContracts.PickMultipleVisualMedia(
+                                expenseDetailUiState.allowImages
+                            )
+                        ) { uris ->
+                            if (uris.isNotEmpty()) {
+                                uris.forEach {
+                                    context.contentResolver.takePersistableUriPermission(
+                                        it,
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    )
+                                    expenseDetailViewModel.addImage(it.toString())
+                                }
+                            }
+                        }
+                    } else {
+                        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                            if (uri != null) {
                                 context.contentResolver.takePersistableUriPermission(
-                                    it,
+                                    uri,
                                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                                 )
-                                expenseDetailViewModel.addImage(it.toString())
+                                expenseDetailViewModel.addImage(uri.toString())
                             }
                         }
                     }
-                } else {
-                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        if (uri != null) {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
-                            expenseDetailViewModel.addImage(uri.toString())
+
+                    var openAddImageDialog by remember { mutableStateOf(false) }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Button(onClick = {
+                            openAddImageDialog = true
+                        }) {
+                            Text("Add Image")
+                        }
+                        Button(onClick = {
+                            expenseDetailViewModel.removeImages(selectedImages)
+                        }) {
+                            Text("Delete Image")
                         }
                     }
-                }
 
-                var openAddImageDialog by remember { mutableStateOf(false) }
+                    var openPermissionDialog by remember { mutableStateOf(false) }
+                    var openPermissionDeniedDialog by remember { mutableStateOf(false) }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = {
-                        openAddImageDialog = true
-                    }) {
-                        Text("Add Image")
-                    }
-                    Button(onClick = {
-                        expenseDetailViewModel.removeImages(selectedImages)
-                    }) {
-                        Text("Delete Image")
-                    }
-                }
+                    val cameraPermissionState =
+                        rememberPermissionState(
+                            Manifest.permission.CAMERA,
+                            onGranted = {
+                                onNavigateToCamera()
+                            },
+                            showPermissionDialog = { openPermissionDialog = true },
+                            showPermissionDeniedDialog = { openPermissionDeniedDialog = true }
+                        )
 
-                var openPermissionDialog by remember { mutableStateOf(false) }
-                var openPermissionDeniedDialog by remember { mutableStateOf(false) }
+                    if (openPermissionDeniedDialog)
+                        PermissionDialog(
+                            title = "Permission Denied",
+                            description = "Camera access has been disabled. To use this feature, please enable the camera permission in your device settings.",
+                            dismissText = "Okay",
+                            confirmText = null,
+                            onDismiss = {
+                                openPermissionDeniedDialog = false
+                            }
+                        )
 
-                val cameraPermissionState =
-                    rememberPermissionState(
-                        Manifest.permission.CAMERA,
-                        onGranted = {
-                            onNavigateToCamera()
-                        },
-                        showPermissionDialog = { openPermissionDialog = true },
-                        showPermissionDeniedDialog = { openPermissionDeniedDialog = true }
-                    )
-
-                if (openPermissionDeniedDialog)
-                    PermissionDialog(
-                        title = "Permission Denied",
-                        description = "Camera access has been disabled. To use this feature, please enable the camera permission in your device settings.",
-                        dismissText = "Okay",
-                        confirmText = null,
-                        onDismiss = {
-                            openPermissionDeniedDialog = false
-                        }
-                    )
-
-                val addImageOptions = listOf("Pick Image", "Take Photo")
-                if (openAddImageDialog)
-                    SelectionListDialog(
-                        addImageOptions,
-                        onClicked = {
-                            if (it == addImageOptions[0]) imagePicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                    val addImageOptions = listOf("Pick Image", "Take Photo")
+                    if (openAddImageDialog)
+                        SelectionListDialog(
+                            addImageOptions,
+                            onClicked = {
+                                if (it == addImageOptions[0]) imagePicker.launch(
+                                    PickVisualMediaRequest(
+                                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
                                 )
-                            )
-                            else if (it == addImageOptions[1]) {
-                                cameraPermissionState.requestPermission()
-                            }
-                        },
-                        onDismiss = { openAddImageDialog = false }
-                    ) {
-                        Text(it)
-                    }
-
-                if (openPermissionDialog)
-                    PermissionDialog(
-                        title = "Camera Permission",
-                        description = "We need access to your camera so you can take photos directly in the app. We’ll only use it for this purpose.",
-                        onDismiss = { openPermissionDialog = false },
-                        onConfirm = {
-                            cameraPermissionState.requestPermission(showPermissionRationale = false)
+                                else if (it == addImageOptions[1]) {
+                                    cameraPermissionState.requestPermission()
+                                }
+                            },
+                            onDismiss = { openAddImageDialog = false }
+                        ) {
+                            Text(it)
                         }
-                    )
+
+                    if (openPermissionDialog)
+                        PermissionDialog(
+                            title = "Camera Permission",
+                            description = "We need access to your camera so you can take photos directly in the app. We’ll only use it for this purpose.",
+                            onDismiss = { openPermissionDialog = false },
+                            onConfirm = {
+                                cameraPermissionState.requestPermission(showPermissionRationale = false)
+                            }
+                        )
 
 
-                appBarState.saveExpenseDetail = {
-                    focusManager.clearFocus()
-                    if (expenseDetailViewModel.saveExpense()) {
-                        onNavigateBack()
+                    appBarState.saveExpenseDetail = {
+                        focusManager.clearFocus()
+                        if (expenseDetailViewModel.saveExpense()) {
+                            onNavigateBack()
+                        }
                     }
                 }
             }

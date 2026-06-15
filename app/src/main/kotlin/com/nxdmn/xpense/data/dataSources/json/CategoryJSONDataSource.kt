@@ -6,6 +6,8 @@ import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.helpers.exists
 import com.nxdmn.xpense.helpers.read
 import com.nxdmn.xpense.helpers.write
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import java.util.Random
 
@@ -18,6 +20,11 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
         if (exists(context, CATEGORIES_JSON_FILE)) {
             deserialize()
         }
+    }
+
+    override fun getAllAsFlow(): Flow<List<CategoryModel>> = flow {
+        while (true)
+            emit(_categories)
     }
 
     override suspend fun getAll(): List<CategoryModel> = _categories.toList()

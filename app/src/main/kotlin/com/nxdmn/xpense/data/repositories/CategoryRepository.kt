@@ -3,12 +3,15 @@ package com.nxdmn.xpense.data.repositories
 import com.nxdmn.xpense.data.dataSources.CategoryDataSource
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.ui.CategoryIcon
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class CategoryRepository(
     private val categoryLocalDataSource: CategoryDataSource, // Local data source
 ) {
+    val categoryListFlow: Flow<List<CategoryModel>> = categoryLocalDataSource.getAllAsFlow()
+
     // Mutex to make writes to cached values thread-safe.
     private val getAllCategoriesMutex = Mutex()
 
