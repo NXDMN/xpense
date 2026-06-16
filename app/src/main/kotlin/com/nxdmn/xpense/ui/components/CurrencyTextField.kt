@@ -40,7 +40,6 @@ fun CurrencyTextField(
                 val newValue = when (it.toDoubleOrNull()) {
                     is Double -> df.format(it.toDoubleOrNull())
                     null -> amount
-                    else -> ""
                 }
                 onValueChanged(newValue)
             }

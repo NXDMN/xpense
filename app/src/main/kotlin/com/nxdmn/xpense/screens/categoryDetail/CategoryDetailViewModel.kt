@@ -100,7 +100,7 @@ class CategoryDetailViewModel(
     }
 
     fun saveCategory(): Boolean {
-        if (!validate()) return false;
+        if (!validate()) return false
 
         val currentCategory = _uiState.value.category
         val category = CategoryModel(

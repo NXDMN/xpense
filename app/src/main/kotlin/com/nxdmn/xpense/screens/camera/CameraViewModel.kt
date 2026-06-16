@@ -43,7 +43,7 @@ data class CameraUiState(
     val capturedBitmap: ImageBitmap? = null,
 )
 
-class CameraViewModel() : ViewModel() {
+class CameraViewModel : ViewModel() {
     private val _surfaceRequests = MutableStateFlow<SurfaceRequest?>(null)
     val surfaceRequests: StateFlow<SurfaceRequest?> = _surfaceRequests.asStateFlow()
 
@@ -171,7 +171,7 @@ class CameraViewModel() : ViewModel() {
                     contentValues
                 )
 
-                uri?.let { it ->
+                uri?.let {
                     val bitmap = _uiState.value.capturedBitmap!!.asAndroidBitmap()
                     resolver.openOutputStream(it)?.use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
@@ -195,7 +195,6 @@ class CameraViewModel() : ViewModel() {
     }
 
     override fun onCleared() {
-        super.onCleared()
         // clear bitmap
         _uiState.update { it.copy(capturedBitmap = null) }
     }

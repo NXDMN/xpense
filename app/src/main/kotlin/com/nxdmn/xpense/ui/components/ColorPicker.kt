@@ -1,6 +1,5 @@
 package com.nxdmn.xpense.ui.components
 
-import android.graphics.Bitmap
 import android.graphics.ComposeShader
 import android.graphics.LinearGradient
 import android.graphics.Paint
@@ -41,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toRect
 import kotlinx.coroutines.launch
+import androidx.core.graphics.createBitmap
 
 /**
  * @param color The 32-bit ARGB color int
@@ -120,7 +120,7 @@ fun SaturationAndValuePanel(hue: Float, onSaturationAndValueSelected: (Float, Fl
         val cornerRadius = 12.dp.toPx()
 
         val bitmap =
-            Bitmap.createBitmap(size.width.toInt(), size.height.toInt(), Bitmap.Config.ARGB_8888)
+            createBitmap(size.width.toInt(), size.height.toInt())
         val saturationAndValueCanvas = android.graphics.Canvas(bitmap)
         val saturationAndValuePanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
 
@@ -226,7 +226,7 @@ fun HuePanel(onColorSelected: (Float) -> Unit) {
         val drawScopeSize = size
 
         val bitmap =
-            Bitmap.createBitmap(size.width.toInt(), size.height.toInt(), Bitmap.Config.ARGB_8888)
+            createBitmap(size.width.toInt(), size.height.toInt())
         val hueCanvas = android.graphics.Canvas(bitmap)
         val huePanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
 
