@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
@@ -83,6 +85,7 @@ class ExpenseDetailViewModel(
                     )
                 }
             } catch (ex: Exception) {
+                Firebase.crashlytics.recordException(ex)
                 _uiState.update {
                     it.copy(displayState = DisplayState.Error)
                 }
