@@ -89,7 +89,7 @@ fun ExpenseDetailScreen(
 ) {
     val expenseDetailUiState by expenseDetailViewModel.uiState.collectAsState()
 
-    var openDeleteDialog by remember { mutableStateOf(false) }
+    val openDeleteDialog = remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
@@ -122,7 +122,7 @@ fun ExpenseDetailScreen(
                     if (expenseDetailUiState.isEdit)
                         IconButton(
                             onClick = {
-                                openDeleteDialog = true
+                                openDeleteDialog.value = true
                             },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                         ) {
@@ -180,13 +180,13 @@ fun ExpenseDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (openDeleteDialog)
+                    if (openDeleteDialog.value)
                         DeleteConfirmationDialog(
                             description = "Are you sure you want to delete this expense?",
-                            onDismiss = { openDeleteDialog = false },
+                            onDismiss = { openDeleteDialog.value = false },
                             onConfirmClicked = {
                                 expenseDetailViewModel.deleteExpense()
-                                openDeleteDialog = false
+                                openDeleteDialog.value = false
                                 onNavigateBack()
                             },
                         )

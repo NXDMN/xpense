@@ -44,7 +44,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -192,23 +191,23 @@ fun CalendarLabel(
     val datePickerState =
         rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochMilli())
 
-    var openDatePickerDialog by remember { mutableStateOf(false) }
+    val openDatePickerDialog = remember { mutableStateOf(false) }
 
-    if (openDatePickerDialog) {
+    if (openDatePickerDialog.value) {
         DatePickerDialog(
-            onDismissRequest = { openDatePickerDialog = false },
+            onDismissRequest = { openDatePickerDialog.value = false },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
                         onDateSelected(it.toLocalDate())
                     }
-                    openDatePickerDialog = false
+                    openDatePickerDialog.value = false
                 }) {
                     Text("OK")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { openDatePickerDialog = false }) {
+                TextButton(onClick = { openDatePickerDialog.value = false }) {
                     Text("Cancel")
                 }
             }
@@ -237,7 +236,7 @@ fun CalendarLabel(
                 remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDatePickerDialog = true
+                    openDatePickerDialog.value = true
                 }
             )
             .padding(10.dp),

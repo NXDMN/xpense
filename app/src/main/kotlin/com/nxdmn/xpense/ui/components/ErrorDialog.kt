@@ -36,7 +36,7 @@ fun ErrorDialog(message: String? = null, onDismiss: () -> Unit) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
                     "Error",
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(18.dp))

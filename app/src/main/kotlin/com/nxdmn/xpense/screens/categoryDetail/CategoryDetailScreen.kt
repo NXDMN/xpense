@@ -72,7 +72,7 @@ fun CategoryDetailScreen(
 ) {
     val categoryDetailUiState by categoryDetailViewModel.uiState.collectAsState()
 
-    var openDeleteDialog by remember { mutableStateOf(false) }
+    var openDeleteDialog = remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
@@ -101,7 +101,7 @@ fun CategoryDetailScreen(
                     if (categoryDetailUiState.isEdit)
                         IconButton(
                             onClick = {
-                                openDeleteDialog = true
+                                openDeleteDialog.value = true
                             },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                         ) {
@@ -175,13 +175,13 @@ fun CategoryDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (openDeleteDialog)
+                    if (openDeleteDialog.value)
                         DeleteConfirmationDialog(
                             description = "Are you sure you want to delete this category?",
-                            onDismiss = { openDeleteDialog = false },
+                            onDismiss = { openDeleteDialog.value = false },
                             onConfirmClicked = {
                                 categoryDetailViewModel.deleteCategory()
-                                openDeleteDialog = false
+                                openDeleteDialog.value = false
                                 onNavigateBack()
                             },
                         )

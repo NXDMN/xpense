@@ -12,14 +12,13 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -38,30 +37,29 @@ fun DeleteConfirmationDialog(
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
-            Column {
+            Column(modifier = Modifier.padding(24.dp)) {
                 Text(
                     "Delete Confirmation",
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 20.sp
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                HorizontalDivider(color = Color.LightGray)
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = description)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                Spacer(modifier = Modifier.height(18.dp))
+                Text(text = description, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    TextButton(
+                        onClick = onConfirmClicked,
                     ) {
-                        TextButton(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        TextButton(
-                            onClick = onConfirmClicked,
-                        ) {
-                            Text("Confirm")
-                        }
+                        Text("Confirm")
                     }
                 }
+
             }
         }
     }
