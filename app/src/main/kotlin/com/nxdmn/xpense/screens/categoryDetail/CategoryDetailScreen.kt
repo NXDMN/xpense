@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -112,8 +113,8 @@ fun CategoryDetailScreen(
                         }
                     IconButton(
                         onClick = {
-                            categoryDetailViewModel.saveCategory()
-                            onNavigateBack()
+                            if (categoryDetailViewModel.saveCategory())
+                                onNavigateBack()
                         },
                         colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                     ) {
@@ -198,6 +199,14 @@ fun CategoryDetailScreen(
                         label = {
                             Text(text = "Name")
                         },
+                        supportingText = {
+                            if (categoryDetailUiState.nameErrorText != null) {
+                                Text(
+                                    categoryDetailUiState.nameErrorText!!
+                                )
+                            }
+                        },
+                        isError = categoryDetailUiState.nameErrorText != null,
                         keyboardActions = KeyboardActions(onDone = {
                             focusManager.clearFocus()
                         }),
@@ -206,8 +215,19 @@ fun CategoryDetailScreen(
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
+                            errorIndicatorColor = Color.Transparent
                         )
                     )
+
+                    if (categoryDetailUiState.iconErrorText != null)
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                categoryDetailUiState.iconErrorText!!,
+                                modifier = Modifier.align(Alignment.CenterStart),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
 
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -216,8 +236,8 @@ fun CategoryDetailScreen(
                         CategoryIcon.entries.forEach { icon ->
                             var backgroundColor = Color.Transparent
                             var contentColor = LocalContentColor.current
-                            if (categoryDetailUiState.category.icon?.ordinal == icon.ordinal && categoryDetailUiState.category.color != null) {
-                                backgroundColor = Color(categoryDetailUiState.category.color!!)
+                            if (categoryDetailUiState.category.icon?.ordinal == icon.ordinal) {
+                                backgroundColor = Color(categoryDetailUiState.category.color)
                                 contentColor =
                                     if (backgroundColor.isLight()) Color.Black else Color.White
                             }
@@ -248,7 +268,7 @@ fun CategoryDetailScreen(
                     }
 
                     ColorPicker(
-                        color = categoryDetailUiState.category.color ?: 0xFF808080,
+                        color = categoryDetailUiState.category.color,
                         onColorSelected = {
                             categoryDetailViewModel.updateColor(it)
                         }
@@ -306,14 +326,29 @@ fun TestPreview() {
                 label = {
                     Text(text = "Name")
                 },
+                supportingText = {
+                    Text("Please enter name")
+                },
+                isError = true,
                 singleLine = true,
                 shape = RoundedCornerShape(30.dp),
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
                 )
             )
             var selectedIcon by remember { mutableStateOf(CategoryIcon.LUNCH) }
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "Please choose icon",
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),

@@ -28,6 +28,8 @@ data class CategoryDetailUiState(
     val displayState: DisplayState = DisplayState.Loading,
     val isEdit: Boolean = false,
     val category: CategoryState = CategoryState(),
+    val nameErrorText: String? = null,
+    val iconErrorText: String? = null,
 )
 
 class CategoryDetailViewModel(
@@ -77,7 +79,29 @@ class CategoryDetailViewModel(
         it.copy(category = it.category.copy(color = value))
     }
 
-    fun saveCategory() {
+    private fun validate(): Boolean {
+        _uiState.update {
+            it.copy(nameErrorText = null, iconErrorText = null)
+        }
+        var valid = true
+        if (_uiState.value.category.name.isNullOrBlank()) {
+            _uiState.update {
+                it.copy(nameErrorText = "Please enter name")
+            }
+            valid = false
+        }
+        if (_uiState.value.category.icon == null) {
+            _uiState.update {
+                it.copy(iconErrorText = "Please choose icon")
+            }
+            valid = false
+        }
+        return valid
+    }
+
+    fun saveCategory(): Boolean {
+        if (!validate()) return false;
+
         val currentCategory = _uiState.value.category
         val category = CategoryModel(
             id = categoryId ?: 0,
@@ -92,6 +116,8 @@ class CategoryDetailViewModel(
                 repository.createCategory(category)
             }
         }
+
+        return true
     }
 
     fun deleteCategory() = viewModelScope.launch {
