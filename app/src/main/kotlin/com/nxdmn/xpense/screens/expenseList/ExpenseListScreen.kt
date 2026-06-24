@@ -142,7 +142,6 @@ fun ExpenseListScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TextButton(onClick = { throw RuntimeException("Test Crash") }) { Text("Test Crash") }
                 CalendarLabel(
                     viewMode = expenseListUiState.viewMode,
                     selectedDate = expenseListUiState.selectedDate,

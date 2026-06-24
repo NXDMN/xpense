@@ -45,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -204,9 +205,16 @@ fun ExpenseDetailScreen(
 
                     val datePickerState =
                         rememberDatePickerState(initialSelectedDateMillis = expenseDetailUiState.expense.date.toEpochMilli())
-                    datePickerState.selectedDateMillis?.let {
-                        expenseDetailViewModel.updateDate(it)
+
+                    LaunchedEffect(datePickerState.selectedDateMillis) {
+                        datePickerState.selectedDateMillis?.let { selectedMilli ->
+                            // This only fires when the user actually changes the date
+                            if (selectedMilli != expenseDetailUiState.expense.date.toEpochMilli()) {
+                                expenseDetailViewModel.updateDate(selectedMilli)
+                            }
+                        }
                     }
+                    
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer,
                         modifier = Modifier.padding(bottom = 20.dp),
