@@ -102,7 +102,7 @@ class ExpenseDetailViewModel(
                         displayState = DisplayState.Content,
                         currencyCode = currencyCode,
                         categoryList = categoryList,
-                        isEdit = expense != null,
+                        isEdit = expenseId != null,
                         expense = expenseState,
                     )
                 }
