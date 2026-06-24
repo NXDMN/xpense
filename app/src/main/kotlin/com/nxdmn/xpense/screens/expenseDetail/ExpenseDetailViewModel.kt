@@ -1,14 +1,18 @@
 package com.nxdmn.xpense.screens.expenseDetail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.nxdmn.xpense.MainApplication
+import com.nxdmn.xpense.data.converters.LocalDateSerializer
 import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
 import com.nxdmn.xpense.data.models.CategoryModel
 import com.nxdmn.xpense.data.models.ExpenseModel
@@ -22,12 +26,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
-const val MAX_PHOTOS = 4
+private const val MAX_PHOTOS = 4
+private const val EXPENSE_STATE_SAVED_STATE_KEY = "ExpenseStateKey"
 
+@Serializable
 data class ExpenseState(
     val amount: Double = 0.0,
+    @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate = LocalDate.now(),
     val category: CategoryModel? = null,
     val remarks: String = "",
@@ -46,6 +54,7 @@ data class ExpenseDetailUiState(
 }
 
 class ExpenseDetailViewModel(
+    private val savedStateHandle: SavedStateHandle,
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     dataStore: UserPrefsDataStore,
@@ -53,6 +62,8 @@ class ExpenseDetailViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExpenseDetailUiState())
     val uiState: StateFlow<ExpenseDetailUiState> = _uiState.asStateFlow()
+
+    private var expenseState by savedStateHandle.saved(key = EXPENSE_STATE_SAVED_STATE_KEY) { ExpenseState() }
 
     init {
         viewModelScope.launch {
@@ -66,8 +77,25 @@ class ExpenseDetailViewModel(
                 }
                 val currencyCode = dataStore.getCurrency().currencyCode
 
+                val isExpenseStateRestored =
+                    savedStateHandle.contains(EXPENSE_STATE_SAVED_STATE_KEY)
+
                 val expense: ExpenseModel? =
-                    if (expenseId != null) expenseRepository.getExpense(expenseId) else null
+                    if (expenseId != null && !isExpenseStateRestored) expenseRepository.getExpense(
+                        expenseId
+                    ) else null
+
+                if (!isExpenseStateRestored) {
+                    expenseState = if (expense != null)
+                        ExpenseState(
+                            amount = expense.amount,
+                            date = expense.date,
+                            category = expense.category,
+                            remarks = expense.remarks,
+                            images = expense.images,
+                        )
+                    else ExpenseState(category = categoryList.firstOrNull())
+                }
 
                 _uiState.update {
                     it.copy(
@@ -75,13 +103,7 @@ class ExpenseDetailViewModel(
                         currencyCode = currencyCode,
                         categoryList = categoryList,
                         isEdit = expense != null,
-                        expense = if (expense != null) ExpenseState(
-                            amount = expense.amount,
-                            date = expense.date,
-                            category = expense.category,
-                            remarks = expense.remarks,
-                            images = expense.images,
-                        ) else ExpenseState(category = categoryList.firstOrNull()),
+                        expense = expenseState,
                     )
                 }
             } catch (ex: Exception) {
@@ -128,47 +150,60 @@ class ExpenseDetailViewModel(
                 categoryRepository.updateCategory(currentExpense.category.apply { count++ })
             }
         }
+        savedStateHandle.remove<ExpenseState>(EXPENSE_STATE_SAVED_STATE_KEY)
         return true
     }
 
-    fun deleteExpense() = viewModelScope.launch {
-        expenseRepository.deleteExpense(expenseId!!)
+    fun deleteExpense() {
+        viewModelScope.launch {
+            expenseRepository.deleteExpense(expenseId!!)
+        }
+        savedStateHandle.remove<ExpenseState>(EXPENSE_STATE_SAVED_STATE_KEY)
     }
 
-    fun updateAmount(amount: String) = _uiState.update {
-        it.copy(expense = it.expense.copy(amount = amount.toDoubleOrNull() ?: 0.0))
+    private inline fun updateExpenseState(crossinline block: (ExpenseState) -> ExpenseState) {
+        // Update the SavedStateHandle delegate directly
+        expenseState = block(expenseState)
+        // Push the new value to the UI flow
+        _uiState.update { it.copy(expense = expenseState) }
     }
 
-    fun updateDate(date: Long) = _uiState.update {
-        it.copy(expense = it.expense.copy(date = date.toLocalDate()))
+    fun updateAmount(amount: String) = updateExpenseState {
+        it.copy(amount = amount.toDoubleOrNull() ?: 0.0)
     }
 
-    fun updateCategory(category: CategoryModel) = _uiState.update {
-        it.copy(expense = it.expense.copy(category = category))
+    fun updateDate(date: Long) = updateExpenseState {
+        it.copy(date = date.toLocalDate())
     }
 
-    fun updateRemarks(remarks: String) = _uiState.update {
-        it.copy(expense = it.expense.copy(remarks = remarks))
+    fun updateCategory(category: CategoryModel) = updateExpenseState {
+        it.copy(category = category)
     }
 
-    fun addImage(image: String) = _uiState.update {
-        it.copy(expense = it.expense.copy(images = it.expense.images + image))
+    fun updateRemarks(remarks: String) = updateExpenseState {
+        it.copy(remarks = remarks)
     }
 
-    fun removeImages(images: List<String>) = _uiState.update {
-        it.copy(expense = it.expense.copy(images = it.expense.images - images.toSet()))
+    fun addImage(image: String) = updateExpenseState {
+        it.copy(images = expenseState.images + image)
+    }
+
+    fun removeImages(images: List<String>) = updateExpenseState {
+        it.copy(images = expenseState.images - images.toSet())
     }
 
     companion object {
         fun Factory(navKey: ExpenseDetail? = null): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
+                    val savedStateHandle = createSavedStateHandle()
                     val app = this[APPLICATION_KEY] as MainApplication
                     val expenseRepo = app.expenseRepository
                     val categoryRepo = app.categoryRepository
                     val ds = app.userPrefsDataStore
 
                     ExpenseDetailViewModel(
+                        savedStateHandle = savedStateHandle,
                         expenseRepository = expenseRepo,
                         categoryRepository = categoryRepo,
                         dataStore = ds,
