@@ -20,8 +20,8 @@ class CategoryRoomDataSource(private val dao: CategoryDao) : CategoryDataSource 
         return dao.getById(id)?.asModel()
     }
 
-    override suspend fun create(category: CategoryModel) {
-        dao.create(category.asEntity())
+    override suspend fun create(category: CategoryModel): Long {
+        return dao.create(category.asEntity())
     }
 
     override suspend fun update(category: CategoryModel) {

@@ -31,10 +31,11 @@ class CategoryJSONDataSource(private val context: Context) : CategoryDataSource 
 
     override suspend fun get(id: Long): CategoryModel? = _categories.find { it.id == id }
 
-    override suspend fun create(category: CategoryModel) {
+    override suspend fun create(category: CategoryModel): Long {
         category.id = Random().nextLong()
         _categories.add(category)
         serialize()
+        return category.id
     }
 
     override suspend fun update(category: CategoryModel) {

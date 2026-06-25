@@ -22,7 +22,7 @@ interface CategoryDao {
     suspend fun getById(id: Long): CategoryEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun create(category: CategoryEntity)
+    suspend fun create(category: CategoryEntity): Long
 
     @Update
     suspend fun update(category: CategoryEntity)

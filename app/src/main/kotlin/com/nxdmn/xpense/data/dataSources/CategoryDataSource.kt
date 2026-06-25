@@ -7,7 +7,7 @@ interface CategoryDataSource {
     fun getAllAsFlow(): Flow<List<CategoryModel>>
     suspend fun getAll(): List<CategoryModel>
     suspend fun get(id: Long): CategoryModel?
-    suspend fun create(category: CategoryModel)
+    suspend fun create(category: CategoryModel): Long
     suspend fun update(category: CategoryModel)
     suspend fun delete(id: Long)
 }

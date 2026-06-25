@@ -33,9 +33,9 @@ class SettingsViewModel(
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        repository.categoryListFlow,                // Expose Category List as a live Flow from your Room DB
-        dataStore.currencyFlow,                   // Live stream of chosen Currency configuration
-        dataStore.favCategoryIdFlow               // Live stream of favorite category ID
+        repository.categoryListFlow,
+        dataStore.currencyFlow,
+        dataStore.favCategoryIdFlow
     ) { categories, currency, favCategoryId ->
 
         val categoryList = categories.toMutableList()
