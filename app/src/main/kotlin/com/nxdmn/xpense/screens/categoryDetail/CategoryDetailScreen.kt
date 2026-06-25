@@ -72,7 +72,7 @@ fun CategoryDetailScreen(
 ) {
     val categoryDetailUiState by categoryDetailViewModel.uiState.collectAsState()
 
-    var openDeleteDialog = remember { mutableStateOf(false) }
+    val openDeleteDialog = remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 

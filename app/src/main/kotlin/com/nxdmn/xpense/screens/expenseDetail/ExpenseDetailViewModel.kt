@@ -80,12 +80,9 @@ class ExpenseDetailViewModel(
                 val isExpenseStateRestored =
                     savedStateHandle.contains(EXPENSE_STATE_SAVED_STATE_KEY)
 
-                val expense: ExpenseModel? =
-                    if (expenseId != null && !isExpenseStateRestored) expenseRepository.getExpense(
-                        expenseId
-                    ) else null
-
                 if (!isExpenseStateRestored) {
+                    val expense: ExpenseModel? = expenseId?.let { expenseRepository.getExpense(it) }
+
                     expenseState = if (expense != null)
                         ExpenseState(
                             amount = expense.amount,

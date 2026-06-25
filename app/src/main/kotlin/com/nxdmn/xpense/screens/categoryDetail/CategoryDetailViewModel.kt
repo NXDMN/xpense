@@ -1,8 +1,11 @@
 package com.nxdmn.xpense.screens.categoryDetail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -19,7 +22,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
+private const val CATEGORY_STATE_SAVED_STATE_KEY = "CategoryStateKey"
+
+@Serializable
 data class CategoryState(
     val name: String? = null,
     val icon: CategoryIcon? = null,
@@ -35,31 +42,39 @@ data class CategoryDetailUiState(
 )
 
 class CategoryDetailViewModel(
+    private val savedStateHandle: SavedStateHandle,
     private val repository: CategoryRepository,
     private val categoryId: Long?
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CategoryDetailUiState())
     val uiState: StateFlow<CategoryDetailUiState> = _uiState.asStateFlow()
 
+    private var categoryState by savedStateHandle.saved(key = CATEGORY_STATE_SAVED_STATE_KEY) { CategoryState() }
+
     init {
         viewModelScope.launch {
             try {
-                val category: CategoryModel? = categoryId?.let { repository.getCategory(it) }
+                val isCategoryStateRestored =
+                    savedStateHandle.contains(CATEGORY_STATE_SAVED_STATE_KEY)
 
-                if (category != null)
-                    _uiState.update {
-                        it.copy(
-                            displayState = DisplayState.Content,
-                            isEdit = true,
-                            category = CategoryState(
-                                name = category.name,
-                                icon = category.icon,
-                                color = category.color,
-                            )
+                if (!isCategoryStateRestored) {
+                    val category: CategoryModel? = categoryId?.let { repository.getCategory(it) }
+
+                    categoryState = if (category != null)
+                        CategoryState(
+                            name = category.name,
+                            icon = category.icon,
+                            color = category.color,
                         )
-                    }
-                else _uiState.update {
-                    it.copy(displayState = DisplayState.Content)
+                    else CategoryState()
+                }
+
+                _uiState.update {
+                    it.copy(
+                        displayState = DisplayState.Content,
+                        isEdit = categoryId != null,
+                        category = categoryState
+                    )
                 }
             } catch (ex: Exception) {
                 Firebase.crashlytics.recordException(ex)
@@ -70,16 +85,21 @@ class CategoryDetailViewModel(
         }
     }
 
-    fun updateName(value: String) = _uiState.update {
-        it.copy(category = it.category.copy(name = value))
+    private inline fun updateCategoryState(crossinline block: (CategoryState) -> CategoryState) {
+        categoryState = block(categoryState)
+        _uiState.update { it.copy(category = categoryState) }
     }
 
-    fun updateIcon(value: CategoryIcon) = _uiState.update {
-        it.copy(category = it.category.copy(icon = value))
+    fun updateName(value: String) = updateCategoryState {
+        it.copy(name = value)
     }
 
-    fun updateColor(value: Long) = _uiState.update {
-        it.copy(category = it.category.copy(color = value))
+    fun updateIcon(value: CategoryIcon) = updateCategoryState {
+        it.copy(icon = value)
+    }
+
+    fun updateColor(value: Long) = updateCategoryState {
+        it.copy(color = value)
     }
 
     private fun validate(): Boolean {
@@ -119,19 +139,23 @@ class CategoryDetailViewModel(
                 repository.createCategory(category)
             }
         }
-
+        savedStateHandle.remove<CategoryState>(CATEGORY_STATE_SAVED_STATE_KEY)
         return true
     }
 
-    fun deleteCategory() = viewModelScope.launch {
-        repository.deleteCategory(categoryId!!)
+    fun deleteCategory() {
+        viewModelScope.launch {
+            repository.deleteCategory(categoryId!!)
+        }
+        savedStateHandle.remove<CategoryState>(CATEGORY_STATE_SAVED_STATE_KEY)
     }
 
     companion object {
         fun Factory(navKey: CategoryDetail? = null): ViewModelProvider.Factory = viewModelFactory {
             initializer {
+                val savedStateHandle = createSavedStateHandle()
                 val repo = (this[APPLICATION_KEY] as MainApplication).categoryRepository
-                CategoryDetailViewModel(repo, navKey?.categoryId)
+                CategoryDetailViewModel(savedStateHandle, repo, navKey?.categoryId)
             }
         }
     }
