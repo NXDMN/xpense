@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.nxdmn.xpense.data.converters.CategoryIconConverters
-import com.nxdmn.xpense.data.converters.EnumSerializer
 import com.nxdmn.xpense.ui.CategoryIcon
 import kotlinx.serialization.Serializable
 
@@ -12,16 +11,10 @@ import kotlinx.serialization.Serializable
 data class CategoryModel(
     var id: Long = 0,
     var name: String,
-    @Serializable(with = CategoryIconSerializer::class)
     var icon: CategoryIcon,
     var color: Long = 0,
     var count: Int = 0
-) {
-    private object CategoryIconSerializer : EnumSerializer<CategoryIcon>(
-        "CategoryIcon",
-        CategoryIcon.entries
-    )
-}
+)
 
 @TypeConverters(CategoryIconConverters::class)
 @Entity
