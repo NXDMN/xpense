@@ -9,24 +9,21 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nxdmn.xpense.MainApplication
 import com.nxdmn.xpense.data.dataStores.UserPrefsDataStore
-import com.nxdmn.xpense.data.models.ExpenseModel
-import com.nxdmn.xpense.data.repositories.ExpenseRepository
+import com.nxdmn.xpense.domain.ExpenseGroup
+import com.nxdmn.xpense.domain.GetGroupedExpensesUseCase
+import com.nxdmn.xpense.domain.ViewMode
 import com.nxdmn.xpense.helpers.CurrencyHelper
 import com.nxdmn.xpense.ui.components.ChartModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
-
-// expenses group by date/category
-data class ExpenseGroup(
-    val groupName: String,
-    val amount: Double,
-    val expenses: List<ExpenseModel>
-)
 
 data class ExpenseListUiState(
     val currencySymbol: String? = null,
@@ -38,14 +35,8 @@ data class ExpenseListUiState(
     val charts: List<ChartModel> = emptyList()
 )
 
-enum class ViewMode(val title: String) {
-    DAY("Day"),
-    MONTH("Month"),
-    YEAR("Year")
-}
-
 class ExpenseListViewModel(
-    repository: ExpenseRepository,
+    private val getGroupedExpensesUseCase: GetGroupedExpensesUseCase,
     dataStore: UserPrefsDataStore
 ) : ViewModel() {
     private var today: LocalDate = LocalDate.now()
@@ -54,70 +45,38 @@ class ExpenseListViewModel(
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     private val _isGroupByCategory = MutableStateFlow(true)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ExpenseListUiState> =
         combine(
-            repository.expenseListFlow,
             _viewMode,
             _selectedDate,
-            dataStore.currencyFlow,
             _isGroupByCategory,
-        ) { expenses, viewMode, selectedDate, currencyFlow, isGroupByCategory ->
-            val filteredExpenses = when (viewMode) {
-                ViewMode.DAY -> expenses.filter { e -> e.date == selectedDate }
-                ViewMode.MONTH -> expenses.filter { e -> e.date.year == selectedDate.year && e.date.month == selectedDate.month }
-                ViewMode.YEAR -> expenses.filter { e -> e.date.year == selectedDate.year }
-            }
-
-            val groupedExpenses =
-                // in day, can be grouped by category
-                if (isGroupByCategory || viewMode == ViewMode.DAY) filteredExpenses.groupBy { it.category }
-                    .map { (category, expenses) ->
-                        ExpenseGroup(
-                            category.name,
-                            expenses.sumOf { it.amount },
-                            expenses
+            dataStore.currencyFlow,
+        ) { viewMode, selectedDate, isGroupByCategory, currencyFlow ->
+            Triple(viewMode, selectedDate, isGroupByCategory) to currencyFlow
+        }.flatMapLatest { (params, currencyFlow) ->
+            val (viewMode, selectedDate, isGroupByCategory) = params
+            getGroupedExpensesUseCase(viewMode, selectedDate, isGroupByCategory).map { result ->
+                val chartData = result.filteredExpenses
+                    .groupingBy { e -> e.category }
+                    .fold(0.0) { acc, element -> acc + element.amount }
+                    .map { entry ->
+                        ChartModel(
+                            entry.value.toFloat(),
+                            Color(entry.key.color)
                         )
                     }
-                else when (viewMode) {
-                    // in month, can be grouped by day
-                    ViewMode.MONTH -> filteredExpenses.groupBy { it.date }
-                        .toSortedMap(compareByDescending { it }).map { (key, expenses) ->
-                            ExpenseGroup(
-                                (key as LocalDate).toString(),
-                                expenses.sumOf { it.amount },
-                                expenses
-                            )
-                        }
-                    // in year, can be grouped by month
-                    ViewMode.YEAR -> filteredExpenses.groupBy { it.date.month }
-                        .map { (key, expenses) ->
-                            ExpenseGroup(
-                                key.name,
-                                expenses.sumOf { it.amount },
-                                expenses
-                            )
-                        }
-                }
 
-            val chartData = filteredExpenses
-                .groupingBy { e -> e.category }
-                .fold(0.0) { acc, element -> acc + element.amount }
-                .map { entry ->
-                    ChartModel(
-                        entry.value.toFloat(),
-                        Color(entry.key.color)
-                    )
-                }
-
-            ExpenseListUiState(
-                currencySymbol = CurrencyHelper.getSymbol(currencyFlow),
-                viewMode = viewMode,
-                isGroupByCategory = isGroupByCategory,
-                groupedExpenses = groupedExpenses,
-                expenseAmount = filteredExpenses.sumOf { e -> e.amount },
-                selectedDate = selectedDate,
-                charts = chartData
-            )
+                ExpenseListUiState(
+                    currencySymbol = CurrencyHelper.getSymbol(currencyFlow),
+                    viewMode = viewMode,
+                    isGroupByCategory = isGroupByCategory,
+                    groupedExpenses = result.groupedExpenses,
+                    expenseAmount = result.totalAmount,
+                    selectedDate = selectedDate,
+                    charts = chartData
+                )
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -143,9 +102,11 @@ class ExpenseListViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val repo = (this[APPLICATION_KEY] as MainApplication).expenseRepository
-                val ds = (this[APPLICATION_KEY] as MainApplication).userPrefsDataStore
-                ExpenseListViewModel(repo, ds)
+                val app = this[APPLICATION_KEY] as MainApplication
+                val repo = app.expenseRepository
+                val ds = app.userPrefsDataStore
+                val useCase = GetGroupedExpensesUseCase(repo)
+                ExpenseListViewModel(useCase, ds)
             }
         }
     }
