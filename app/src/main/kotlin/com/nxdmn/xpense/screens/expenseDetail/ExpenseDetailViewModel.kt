@@ -194,16 +194,12 @@ class ExpenseDetailViewModel(
             viewModelFactory {
                 initializer {
                     val savedStateHandle = createSavedStateHandle()
-                    val app = this[APPLICATION_KEY] as MainApplication
-                    val expenseRepo = app.expenseRepository
-                    val categoryRepo = app.categoryRepository
-                    val ds = app.userPrefsDataStore
-
+                    val appContainer = (this[APPLICATION_KEY] as MainApplication).appContainer
                     ExpenseDetailViewModel(
                         savedStateHandle = savedStateHandle,
-                        expenseRepository = expenseRepo,
-                        categoryRepository = categoryRepo,
-                        dataStore = ds,
+                        expenseRepository = appContainer.expenseRepository,
+                        categoryRepository = appContainer.categoryRepository,
+                        dataStore = appContainer.userPrefsDataStore,
                         expenseId = navKey?.expenseId,
                     )
                 }

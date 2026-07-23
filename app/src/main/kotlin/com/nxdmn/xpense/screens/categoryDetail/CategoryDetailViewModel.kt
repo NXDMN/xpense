@@ -154,8 +154,12 @@ class CategoryDetailViewModel(
         fun Factory(navKey: CategoryDetail? = null): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val savedStateHandle = createSavedStateHandle()
-                val repo = (this[APPLICATION_KEY] as MainApplication).categoryRepository
-                CategoryDetailViewModel(savedStateHandle, repo, navKey?.categoryId)
+                val appContainer = (this[APPLICATION_KEY] as MainApplication).appContainer
+                CategoryDetailViewModel(
+                    savedStateHandle,
+                    appContainer.categoryRepository,
+                    navKey?.categoryId
+                )
             }
         }
     }

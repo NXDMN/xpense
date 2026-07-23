@@ -106,7 +106,7 @@ fun EntryProviderScope<NavKey>.expenseDetailScreen(
 
         LaunchedEffect(resultBus) {
             snapshotFlow { resultState }.collect { uriState ->
-                val uri = uriState.value;
+                val uri = uriState.value
                 if (uri != null) {
                     vm.addImage(uri.toString())
                     resultBus.sendResult(null)

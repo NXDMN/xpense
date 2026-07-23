@@ -78,9 +78,8 @@ class SettingsViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val repo = (this[APPLICATION_KEY] as MainApplication).categoryRepository
-                val ds = (this[APPLICATION_KEY] as MainApplication).userPrefsDataStore
-                SettingsViewModel(repo, ds)
+                val appContainer = (this[APPLICATION_KEY] as MainApplication).appContainer
+                SettingsViewModel(appContainer.categoryRepository, appContainer.userPrefsDataStore)
             }
         }
     }

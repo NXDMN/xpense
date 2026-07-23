@@ -102,11 +102,9 @@ class ExpenseListViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val app = this[APPLICATION_KEY] as MainApplication
-                val repo = app.expenseRepository
-                val ds = app.userPrefsDataStore
-                val useCase = GetGroupedExpensesUseCase(repo)
-                ExpenseListViewModel(useCase, ds)
+                val appContainer = (this[APPLICATION_KEY] as MainApplication).appContainer
+                val useCase = GetGroupedExpensesUseCase(appContainer.expenseRepository)
+                ExpenseListViewModel(useCase, appContainer.userPrefsDataStore)
             }
         }
     }

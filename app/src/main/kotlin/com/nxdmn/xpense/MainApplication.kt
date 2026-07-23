@@ -1,6 +1,7 @@
 package com.nxdmn.xpense
 
 import android.app.Application
+import android.content.Context
 import com.nxdmn.xpense.data.dataSources.json.CategoryJSONDataSource
 import com.nxdmn.xpense.data.dataSources.json.ExpenseJSONDataSource
 import com.nxdmn.xpense.data.dataSources.room.AppDatabase
@@ -11,23 +12,25 @@ import com.nxdmn.xpense.data.repositories.CategoryRepository
 import com.nxdmn.xpense.data.repositories.ExpenseRepository
 
 class MainApplication : Application() {
-    lateinit var expenseRepository: ExpenseRepository
-    lateinit var categoryRepository: CategoryRepository
-    lateinit var userPrefsDataStore: UserPrefsDataStore
+    lateinit var appContainer: AppContainer
 
     override fun onCreate() {
         super.onCreate()
 
-        // DataStore
-        userPrefsDataStore = UserPrefsDataStore(this)
-
-        // ROOM
-        val appDatabase = AppDatabase.getDatabase(this)
-        expenseRepository = ExpenseRepository(ExpenseRoomDataSource(appDatabase.expenseDao()))
-        categoryRepository = CategoryRepository(CategoryRoomDataSource(appDatabase.categoryDao()))
-
-        // JSON
-//        expenseRepository = ExpenseRepository(ExpenseJSONDataSource(this))
-//        categoryRepository = CategoryRepository(CategoryJSONDataSource(this))
+        appContainer = AppContainer(this)
     }
+}
+
+class AppContainer(val context: Context) {
+    // DataStore
+    val userPrefsDataStore = UserPrefsDataStore(context)
+
+    // ROOM
+    val appDatabase = AppDatabase.getDatabase(context)
+    val expenseRepository = ExpenseRepository(ExpenseRoomDataSource(appDatabase.expenseDao()))
+    val categoryRepository = CategoryRepository(CategoryRoomDataSource(appDatabase.categoryDao()))
+
+    // JSON
+//    val expenseRepository = ExpenseRepository(ExpenseJSONDataSource(context))
+//    val categoryRepository = CategoryRepository(CategoryJSONDataSource(context))
 }
